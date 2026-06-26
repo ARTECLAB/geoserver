@@ -357,9 +357,9 @@ body {
     </div>
 
     <div class="links-grid">
-      <a class="link-card" href="https://ubuntu.com/tutorials/command-line-for-beginners" target="_blank">
+      <a class="link-card" href="https://www.debian.org/doc/manuals/debian-reference/ch01.en.html" target="_blank">
         <span class="link-icon">🐧</span>
-        <div><div class="link-title">Terminal para principiantes</div><div class="link-url">ubuntu.com/tutorials</div></div>
+        <div><div class="link-title">Manual de referencia Debian</div><div class="link-url">debian.org/doc</div></div>
       </a>
       <a class="link-card" href="https://www.digitalocean.com/community/tutorials/linux-commands" target="_blank">
         <span class="link-icon">📖</span>
@@ -396,12 +396,12 @@ body {
       <div class="concept-card">
         <span class="concept-icon">☕</span>
         <div class="concept-name">JDK vs JRE</div>
-        <div class="concept-desc"><strong>JRE:</strong> solo ejecuta Java. <strong>JDK:</strong> ejecuta y compila. Necesitamos el <strong>JDK 17</strong>. En Ubuntu: <code>apt install openjdk-17-jdk</code></div>
+        <div class="concept-desc"><strong>JRE:</strong> solo ejecuta Java. <strong>JDK:</strong> ejecuta y compila. Necesitamos el <strong>JDK 17</strong>. En Debian 13: <code>apt install default-jdk</code> instala Java 17 directamente desde los repositorios oficiales.</div>
       </div>
       <div class="concept-card">
         <span class="concept-icon">🐈</span>
         <div class="concept-name">Apache Tomcat</div>
-        <div class="concept-desc">Servidor web Java (contenedor de servlets). GeoServer se despliega como un archivo WAR dentro de la carpeta <code>webapps/</code>.</div>
+        <div class="concept-desc">Servidor web Java (contenedor de servlets). En Debian 13 se instala con <code>apt install tomcat10</code> sin descargas manuales. GeoServer se despliega como un WAR en <code>webapps/</code>.</div>
       </div>
       <div class="concept-card">
         <span class="concept-icon">📦</span>
@@ -422,7 +422,7 @@ body {
 
 <span class="c"># Verificar variable JAVA_HOME</span>
 <span class="k">echo</span> $JAVA_HOME
-<span class="c"># Debe mostrar: /usr/lib/jvm/java-17-openjdk-amd64</span>
+<span class="c"># Debe mostrar: /usr/lib/jvm/java-17-openjdk-amd64 (Debian 13)</span>
 
 <span class="c"># Estructura de Tomcat (lo que verás en el curso)</span>
 /opt/tomcat/
@@ -432,13 +432,13 @@ body {
   └── logs/         <span class="c"># catalina.out (los logs)</span></div>
 
     <div class="links-grid">
-      <a class="link-card" href="https://adoptium.net" target="_blank">
-        <span class="link-icon">☕</span>
-        <div><div class="link-title">Descargar Java 17 (Adoptium)</div><div class="link-url">adoptium.net</div></div>
-      </a>
-      <a class="link-card" href="https://tomcat.apache.org/download-11.cgi" target="_blank">
+      <a class="link-card" href="https://packages.debian.org/trixie/tomcat10" target="_blank">
         <span class="link-icon">🐈</span>
-        <div><div class="link-title">Descargar Tomcat 11</div><div class="link-url">tomcat.apache.org</div></div>
+        <div><div class="link-title">Tomcat en repositorios Debian 13</div><div class="link-url">packages.debian.org/trixie</div></div>
+      </a>
+      <a class="link-card" href="https://geoserver.org/download/" target="_blank">
+        <span class="link-icon">⬇️</span>
+        <div><div class="link-title">Descargar GeoServer 3 (WAR)</div><div class="link-url">geoserver.org/download</div></div>
       </a>
     </div>
   </section>
@@ -549,7 +549,7 @@ body {
         <div class="check-mark">🗄️</div>
         <div class="check-text">
           <div class="check-bold">Store — la fuente de datos</div>
-          <div class="check-sub">Puede ser un archivo (Shapefile, GeoPackage, GeoTIFF) o una base de datos (PostGIS). Un workspace puede tener múltiples stores.</div>
+          <div class="check-sub">Puede ser un archivo (Shapefile, GeoTIFF) o una base de datos (PostGIS). Un workspace puede tener múltiples stores.</div>
         </div>
       </div>
       <div class="check-item">
@@ -600,12 +600,12 @@ body {
       <div class="concept-card">
         <span class="concept-icon">📐</span>
         <div class="concept-name">Vectorial vs Raster</div>
-        <div class="concept-desc"><strong>Vectorial:</strong> puntos, líneas y polígonos con atributos. Shapefile, GeoPackage, PostGIS. <strong>Raster:</strong> cuadrícula de píxeles. GeoTIFF, DEM.</div>
+        <div class="concept-desc"><strong>Vectorial:</strong> puntos, líneas y polígonos con atributos. Shapefile y PostGIS son los formatos del curso. <strong>Raster:</strong> cuadrícula de píxeles. GeoTIFF, DEM.</div>
       </div>
       <div class="concept-card">
         <span class="concept-icon">📦</span>
-        <div class="concept-name">Shapefile vs GeoPackage</div>
-        <div class="concept-desc"><strong>Shapefile:</strong> formato antiguo, mínimo 4 archivos (.shp, .dbf, .shx, .prj). <strong>GeoPackage:</strong> un solo archivo .gpkg, recomendado para el curso.</div>
+        <div class="concept-name">Shapefile</div>
+        <div class="concept-desc">El formato del curso. Siempre viene en varios archivos juntos: <code>.shp</code> (geometría), <code>.dbf</code> (atributos), <code>.shx</code> (índice) y <code>.prj</code> (proyección). Deben estar todos en la misma carpeta.</div>
       </div>
       <div class="concept-card">
         <span class="concept-icon">🔍</span>
@@ -649,29 +649,29 @@ body {
       <div class="check-item">
         <div class="check-mark">1</div>
         <div class="check-text">
-          <div class="check-bold">Servidor Linux accesible (Ubuntu 24.04 o Debian 13 recomendado)</div>
-          <div class="check-sub">VirtualBox local o servidor en la nube. Mínimo 2GB RAM, 20GB disco.</div>
+          <div class="check-bold">Máquina virtual con Debian 13 en VirtualBox</div>
+          <div class="check-sub">Es el entorno del curso. Mínimo 2 GB de RAM y 20 GB de disco asignados a la VM.</div>
         </div>
       </div>
       <div class="check-item">
         <div class="check-mark">2</div>
         <div class="check-text">
-          <div class="check-bold">Java 17 JDK instalado y JAVA_HOME configurado</div>
-          <div class="check-sub"><code>java -version</code> debe mostrar 17.x. Sin esto, GeoServer 3 no arranca.</div>
+          <div class="check-bold">Java 17 JDK instalado</div>
+          <div class="check-sub">En Debian 13: <code>sudo apt install default-jdk</code>. Verificar con <code>java -version</code>. Sin Java 17, GeoServer 3 no arranca.</div>
         </div>
       </div>
       <div class="check-item">
         <div class="check-mark">3</div>
         <div class="check-text">
-          <div class="check-bold">Apache Tomcat 11 descargado</div>
-          <div class="check-sub">De tomcat.apache.org. No usar Tomcat 9 — incompatible con GeoServer 3.</div>
+          <div class="check-bold">Apache Tomcat instalado desde los repositorios de Debian</div>
+          <div class="check-sub"><code>sudo apt install tomcat10</code> — sin descargas manuales. No instalar Tomcat 9, es incompatible con GeoServer 3.</div>
         </div>
       </div>
       <div class="check-item">
         <div class="check-mark">4</div>
         <div class="check-text">
-          <div class="check-bold">Archivo geoserver-3.x.x-war.zip descargado</div>
-          <div class="check-sub">De geoserver.org. El instructor indicará la versión exacta a usar.</div>
+          <div class="check-bold">Archivo WAR de GeoServer 3 descargado</div>
+          <div class="check-sub">De geoserver.org/download. El instructor indicará la versión exacta. Solo el archivo <code>.war</code> — no el bin.</div>
         </div>
       </div>
       <div class="check-item">
@@ -689,7 +689,7 @@ body {
         <div class="callout-title">Prueba de verificación</div>
         Si puedes abrir el navegador en tu servidor y ver
         <code>http://localhost:8080</code> mostrando la página de bienvenida de Tomcat,
-        estás listo para la Clase 2 donde instalaremos GeoServer.
+        estás listo para la Clase 2 donde instalaremos GeoServer sobre esa misma VM.
       </div>
     </div>
   </section>
