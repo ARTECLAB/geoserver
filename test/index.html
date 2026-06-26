@@ -3,279 +3,345 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeoServer 3 · Cuestionarios de práctica · ARTECLAB</title>
-<link rel="stylesheet" href="assets/quiz.css">
+<title>GeoServer 3 · De cero a producción · ARTECLAB</title>
 <style>
-  /* ── INDEX ONLY ─────────────────────────────────────── */
-  body { min-height: 100vh; display: flex; flex-direction: column; }
+/* ── RESET Y BASE ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Theme toggle — flotante */
-  .toggle-wrap {
-    position: fixed;
-    top: 16px; right: 20px;
-    z-index: 200;
-  }
-  .theme-toggle {
-    background: rgba(13,27,62,0.88);
-    backdrop-filter: blur(6px);
-  }
+:root {
+  --navy:       #0D1B3E;
+  --navy-light: #1E3464;
+  --gold:       #C89B3C;
+  --gold-light: #E8B84B;
+  --gold-pale:  #F5E6C0;
+  --bg:         #F4F6FA;
+  --card:       #FFFFFF;
+  --border:     #E2E8F0;
+  --text:       #0D1B3E;
+  --muted:      #5A6478;
+  --r:          10px;
+  --t:          0.2s ease;
+}
+[data-theme="dark"] {
+  --bg:        #080F20;
+  --card:      #0D1B3E;
+  --border:    #1E3464;
+  --text:      #E8EDF8;
+  --muted:     #8A97B4;
+  --gold-pale: #1A1200;
+}
 
-  /* ── HERO ───────────────────────────────────────────── */
-  .hero {
-    background: var(--bg-header);
-    padding: 72px 24px 60px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  /* Grid cartográfico sutil */
-  .hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(200,155,60,0.055) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(200,155,60,0.055) 1px, transparent 1px);
-    background-size: 44px 44px;
-    pointer-events: none;
-  }
-  .hero-inner {
-    position: relative;
-    max-width: 560px;
-    margin: 0 auto;
-  }
-  .hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--gold);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-  .hero-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--gold);
-    animation: blink 2.4s ease-in-out infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--t), color var(--t);
+}
 
-  .hero-title {
-    color: #fff;
-    font-size: 38px;
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.5px;
-    margin-bottom: 16px;
-  }
-  .hero-title em {
-    color: var(--gold-light);
-    font-style: normal;
-  }
-  .hero-desc {
-    color: #6A7FA8;
-    font-size: 15px;
-    line-height: 1.7;
-    margin-bottom: 32px;
-  }
-  .hero-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--gold);
-    color: var(--navy);
-    font-size: 13px;
-    font-weight: 700;
-    padding: 12px 24px;
-    border-radius: var(--radius-sm);
-    text-decoration: none;
-    letter-spacing: 0.3px;
-    transition: background .2s;
-  }
-  .hero-btn:hover { background: var(--gold-light); }
+/* ── TOGGLE ─────────────────────────────────────────────── */
+.toggle-wrap {
+  position: fixed;
+  top: 16px; right: 20px;
+  z-index: 200;
+}
+.theme-btn {
+  background: rgba(13,27,62,0.88);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: border-color .2s, color .2s;
+}
+.theme-btn:hover { border-color: var(--gold); color: var(--gold-light); }
 
-  /* ── MAIN ───────────────────────────────────────────── */
-  .index-main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 52px 20px 64px;
-    flex: 1;
-  }
+/* ── HERO ────────────────────────────────────────────────── */
+.hero {
+  background: var(--navy);
+  padding: 80px 24px 68px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200,155,60,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,155,60,0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+}
+.hero-inner {
+  position: relative;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.hero-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: blink 2.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  .section-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 18px;
-  }
+.hero-title {
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 18px;
+}
+.hero-title em { color: var(--gold-light); font-style: normal; }
 
-  /* ── APRENDERÁS ─────────────────────────────────────── */
-  .learn-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 52px;
-  }
-  .learn-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 18px 16px;
-    transition: background var(--transition), border-color var(--transition);
-  }
-  .learn-icon {
-    font-size: 20px;
-    margin-bottom: 10px;
-    display: block;
-  }
-  .learn-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 4px;
-    line-height: 1.3;
-  }
-  .learn-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.55;
-  }
+.hero-desc {
+  color: rgba(255,255,255,0.42);
+  font-size: 15px;
+  line-height: 1.75;
+}
 
-  /* ── OTROS CURSOS ───────────────────────────────────── */
-  .courses-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-    margin-bottom: 52px;
-  }
-  .course-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    text-decoration: none;
-    display: block;
-    transition: background var(--transition), border-color .15s, transform .15s;
-  }
-  .course-card:hover {
-    border-color: var(--gold);
-    transform: translateY(-2px);
-  }
-  .course-card-tag {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 6px;
-  }
-  .course-card-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 4px;
-  }
-  .course-card-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.55;
-  }
+/* ── MAIN ────────────────────────────────────────────────── */
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 24px 72px;
+  flex: 1;
+  width: 100%;
+}
 
-  /* ── INSTRUCTOR ─────────────────────────────────────── */
-  .instructor-row {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    transition: background var(--transition), border-color var(--transition);
-  }
-  .inst-avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    background: var(--navy);
-    border: 2px solid var(--gold);
-    color: var(--gold-light);
-    font-size: 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  [data-theme="dark"] .inst-avatar { background: var(--navy-light); }
-  .inst-info { flex: 1; min-width: 0; }
-  .inst-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 2px;
-  }
-  .inst-role {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 9px;
-    line-height: 1.4;
-  }
-  .inst-links { display: flex; gap: 8px; flex-wrap: wrap; }
-  .inst-link {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--gold);
-    text-decoration: none;
-    border: 1px solid rgba(200,155,60,.3);
-    border-radius: 20px;
-    padding: 3px 11px;
-    transition: background .15s, border-color .15s;
-  }
-  .inst-link:hover { background: var(--gold-pale); border-color: var(--gold); }
+/* ── LABEL DE SECCIÓN ────────────────────────────────────── */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+  display: block;
+}
 
-  /* ── FOOTER ─────────────────────────────────────────── */
-  .index-footer {
-    background: var(--bg-header);
-    padding: 18px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    transition: background var(--transition);
-  }
-  .footer-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .footer-copy {
-    font-size: 11px;
-    color: #6A7FA8;
-  }
-  .footer-copy a { color: var(--gold); text-decoration: none; }
-  .footer-right { font-size: 11px; color: #6A7FA8; }
+/* ── CARDS "QUÉ APRENDERÁS" ─────────────────────────────── */
+.learn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 56px;
+}
+.learn-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 18px 18px;
+  transition: background var(--t), border-color var(--t);
+}
+.learn-icon { font-size: 22px; margin-bottom: 12px; display: block; }
+.learn-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+.learn-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
 
-  /* ── RESPONSIVE ─────────────────────────────────────── */
-  @media (max-width: 560px) {
-    .hero { padding: 52px 16px 44px; }
-    .hero-title { font-size: 27px; }
-    .instructor-row { flex-direction: column; text-align: center; }
-    .inst-links { justify-content: center; }
-    .index-footer { justify-content: center; text-align: center; }
-  }
+/* ── LISTA DE CLASES ─────────────────────────────────────── */
+.class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 56px;
+}
+.class-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  transition: background var(--t), border-color var(--t);
+}
+.class-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(200,155,60,0.1);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .class-num {
+  background: rgba(200,155,60,0.12);
+  color: var(--gold-light);
+}
+.class-body { flex: 1; min-width: 0; }
+.class-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.class-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.class-pill {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+/* ── OTROS CURSOS ────────────────────────────────────────── */
+.courses-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 56px;
+}
+.course-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  text-decoration: none;
+  display: block;
+  transition: background var(--t), border-color .15s, transform .15s;
+}
+.course-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.course-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.course-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.course-desc  { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+/* ── INSTRUCTOR ──────────────────────────────────────────── */
+.instructor-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 24px;
+  transition: background var(--t), border-color var(--t);
+}
+.inst-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--navy);
+  border: 2px solid var(--gold);
+  color: var(--gold-light);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .inst-avatar { background: var(--navy-light); }
+.inst-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.inst-role  { font-size: 12px; color: var(--muted); margin-bottom: 9px; line-height: 1.4; }
+.inst-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.inst-link {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  text-decoration: none;
+  border: 1px solid rgba(200,155,60,.3);
+  border-radius: 20px;
+  padding: 3px 11px;
+  transition: background .15s, border-color .15s;
+}
+.inst-link:hover { background: var(--gold-pale); border-color: var(--gold); }
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.site-footer {
+  background: var(--navy);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.footer-left { display: flex; align-items: center; gap: 10px; }
+.badge {
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.footer-copy { font-size: 11px; color: rgba(255,255,255,0.3); }
+.footer-copy a { color: var(--gold); text-decoration: none; }
+.footer-right { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .hero { padding: 60px 20px 52px; }
+  .hero-title { font-size: 28px; }
+  .instructor-row { flex-direction: column; text-align: center; }
+  .inst-links { justify-content: center; }
+  .site-footer { justify-content: center; text-align: center; }
+  .class-pill { display: none; }
+  .class-sub  { white-space: normal; }
+}
 </style>
 </head>
 <body>
 
 <div class="toggle-wrap">
-  <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
-    <span class="toggle-icon" aria-hidden="true">◐</span>
-    <span class="toggle-label">Oscuro</span>
+  <button class="theme-btn" id="themeBtn">
+    <span class="t-icon">◐</span>
+    <span class="t-label">Oscuro</span>
   </button>
 </div>
 
@@ -284,7 +350,7 @@
   <div class="hero-inner">
     <div class="hero-eyebrow">
       <span class="hero-dot"></span>
-      GeoServer 3 &nbsp;·&nbsp; ARTECLAB &nbsp;·&nbsp; <span class="footer-year"></span>
+      GeoServer 3 &nbsp;·&nbsp; ARTECLAB &nbsp;·&nbsp; <span class="auto-year"></span>
     </div>
     <h1 class="hero-title">
       Publica mapas.<br>
@@ -292,34 +358,33 @@
       <em>Domina GeoServer.</em>
     </h1>
     <p class="hero-desc">
-      Instala, configura y despliega GeoServer 3 en un servidor Linux real.
+      Instala, configura y despliega GeoServer 3 en Debian 13.
       Publica capas desde PostGIS, diseña estilos cartográficos y conecta
       todo a un visor web. Curso práctico de nivel intermedio.
     </p>
-    <a href="meridian.html" class="hero-btn">Ir al cuestionario de la Clase 1 →</a>
   </div>
 </section>
 
 <!-- MAIN -->
-<main class="index-main">
+<main>
 
   <!-- Qué aprenderás -->
-  <div class="section-label">Qué aprenderás en este curso</div>
+  <span class="section-label">Qué aprenderás en este curso</span>
   <div class="learn-grid">
     <div class="learn-card">
       <span class="learn-icon">🖥️</span>
       <div class="learn-title">Instalación en Linux</div>
-      <div class="learn-desc">Java 17, Tomcat 11 y despliegue del archivo WAR en Ubuntu o Debian desde cero.</div>
+      <div class="learn-desc">Java 17, Tomcat y despliegue del archivo WAR en Debian 13 con VirtualBox.</div>
     </div>
     <div class="learn-card">
       <span class="learn-icon">🐳</span>
-      <div class="learn-title">Docker y contenedores</div>
-      <div class="learn-desc">GeoServer + PostGIS con Docker Compose. Despliegue reproducible en cualquier entorno.</div>
+      <div class="learn-title">ogr2ogr y conversión de datos</div>
+      <div class="learn-desc">Importa Shapefiles y datos geoespaciales a PostGIS con ogr2ogr desde la VM.</div>
     </div>
     <div class="learn-card">
       <span class="learn-icon">🗺️</span>
       <div class="learn-title">Publicación de capas</div>
-      <div class="learn-desc">Workspaces, Stores y Layers. Datos vectoriales, raster y grupos de capas.</div>
+      <div class="learn-desc">Workspaces, Stores y Layers. Shapefiles, datos raster y grupos de capas.</div>
     </div>
     <div class="learn-card">
       <span class="learn-icon">🎨</span>
@@ -338,37 +403,106 @@
     </div>
   </div>
 
+  <!-- Las 8 clases -->
+  <span class="section-label">8 clases · 16 horas · cuestionarios de práctica</span>
+  <div class="class-list">
+    <div class="class-row">
+      <div class="class-num">1</div>
+      <div class="class-body">
+        <div class="class-title">Fundamentos y arquitectura de GeoServer 3</div>
+        <div class="class-sub">Workspace · Store · Layer · servicios OGC · interfaz administrativa</div>
+      </div>
+      <span class="class-pill">2h · 16 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">2</div>
+      <div class="class-body">
+        <div class="class-title">Instalación en Linux — Debian 13 con VirtualBox</div>
+        <div class="class-sub">Java 17 · Tomcat desde apt · despliegue WAR · primera conexión</div>
+      </div>
+      <span class="class-pill">2h · 16 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">3</div>
+      <div class="class-body">
+        <div class="class-title">PostGIS y ogr2ogr</div>
+        <div class="class-sub">PostGIS en la VM · ogr2ogr · importar Shapefiles · conexión con GeoServer</div>
+      </div>
+      <span class="class-pill">2h · 13 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">4</div>
+      <div class="class-body">
+        <div class="class-title">Publicación de capas</div>
+        <div class="class-sub">Shapefiles · GeoTIFF · Layer Groups · Layer Preview</div>
+      </div>
+      <span class="class-pill">2h · 14 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">5</div>
+      <div class="class-body">
+        <div class="class-title">Estilos SLD y CSS cartográfico</div>
+        <div class="class-sub">Simbología · etiquetas · escala dependiente · estilos raster</div>
+      </div>
+      <span class="class-pill">2h · 12 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">6</div>
+      <div class="class-body">
+        <div class="class-title">PostGIS + GeoServer</div>
+        <div class="class-sub">Conexión directa · vistas SQL · publicación desde base de datos</div>
+      </div>
+      <span class="class-pill">2h · 13 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">7</div>
+      <div class="class-body">
+        <div class="class-title">Servicios OGC, seguridad y filtros CQL</div>
+        <div class="class-sub">WMS · WFS · WMTS · roles · control de acceso por workspace</div>
+      </div>
+      <span class="class-pill">2h · 13 slides</span>
+    </div>
+    <div class="class-row">
+      <div class="class-num">8</div>
+      <div class="class-body">
+        <div class="class-title">Proyecto final — IDE Municipal</div>
+        <div class="class-sub">PostGIS + GeoServer + visor OpenLayers · despliegue completo</div>
+      </div>
+      <span class="class-pill">2h · 11 slides</span>
+    </div>
+  </div>
+
   <!-- Otros cursos -->
-  <div class="section-label">Más cursos con Daniel Quisbert</div>
+  <span class="section-label">Más cursos con Daniel Quisbert</span>
   <div class="courses-row">
     <a href="https://fluttergis.danielquisbert.com" target="_blank" class="course-card">
-      <div class="course-card-tag">Curso activo</div>
-      <div class="course-card-title">📱 Flutter+GIS</div>
-      <div class="course-card-desc">Apps geoespaciales con Flutter. Mapas, GPS y conexión a GeoServer desde iOS y Android.</div>
+      <div class="course-tag">Curso activo</div>
+      <div class="course-title">📱 Flutter GIS</div>
+      <div class="course-desc">Apps geoespaciales con Flutter. Mapas, GPS y conexión a GeoServer desde Android e iOS.</div>
     </a>
     <a href="https://danielquisbert.com/cursos" target="_blank" class="course-card">
-      <div class="course-card-tag">Ver todos</div>
-      <div class="course-card-title">🌐 Webmapping</div>
-      <div class="course-card-desc">Visores web con OpenLayers y Leaflet, consumo de servicios OGC y despliegue en producción.</div>
+      <div class="course-tag">Ver todos</div>
+      <div class="course-title">🌐 Webmapping</div>
+      <div class="course-desc">Visores web con OpenLayers. Consumo de servicios OGC y despliegue en producción.</div>
     </a>
     <a href="https://danielquisbert.com/cursos" target="_blank" class="course-card">
-      <div class="course-card-tag">Ver todos</div>
-      <div class="course-card-title">🗄️ PostGIS</div>
-      <div class="course-card-desc">Bases de datos espaciales con PostgreSQL, consultas ST_ y análisis geoespacial.</div>
+      <div class="course-tag">Ver todos</div>
+      <div class="course-title">🗄️ PostGIS</div>
+      <div class="course-desc">Bases de datos espaciales con PostgreSQL, consultas ST_ y análisis geoespacial.</div>
     </a>
   </div>
 
   <!-- Instructor -->
-  <div class="section-label">Instructor</div>
+  <span class="section-label">Instructor</span>
   <div class="instructor-row">
     <div class="inst-avatar">DQ</div>
-    <div class="inst-info">
+    <div>
       <div class="inst-name">Daniel Quisbert</div>
-      <div class="inst-role">Instructor GIS · ARTECLAB Bolivia<br>GeoServer · PostGIS · Flutter · Webmapping</div>
+      <div class="inst-role">Instructor GIS · ARTECLAB<br>GeoServer · PostGIS · Flutter · Webmapping</div>
       <div class="inst-links">
         <a href="https://danielquisbert.com" target="_blank" class="inst-link">danielquisbert.com ↗</a>
-        <a href="https://geoserver.danielquisbert.com" target="_blank" class="inst-link">GeoServer ↗</a>
-        <a href="https://fluttergis.danielquisbert.com" target="_blank" class="inst-link">Flutter+GIS ↗</a>
+        <a href="https://geoserver-pro.danielquisbert.com" target="_blank" class="inst-link">GeoServer Pro ↗</a>
+        <a href="https://fluttergis.danielquisbert.com" target="_blank" class="inst-link">Flutter GIS ↗</a>
       </div>
     </div>
   </div>
@@ -376,37 +510,42 @@
 </main>
 
 <!-- FOOTER -->
-<footer class="index-footer">
+<footer class="site-footer">
   <div class="footer-left">
-    <span class="logo-badge" style="font-size:9px;padding:2px 8px;">ARTECLAB</span>
+    <span class="badge">ARTECLAB</span>
     <span class="footer-copy">
-      © <span class="footer-year"></span>
+      © <span class="auto-year"></span>
       <a href="https://danielquisbert.com" target="_blank"> Daniel Quisbert</a>
       · Material educativo de libre acceso
     </span>
   </div>
-  <div class="footer-right">GeoServer 3.0.0 · <span class="footer-year"></span></div>
+  <div class="footer-right">GeoServer 3 · <span class="auto-year"></span></div>
 </footer>
 
 <script>
 (function () {
-  const KEY = 'arteclab-theme';
+  var KEY = 'arteclab-theme';
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     localStorage.setItem(KEY, t);
-    const btn = document.getElementById('themeToggle');
-    btn.querySelector('.toggle-icon').textContent  = t === 'dark' ? '☀' : '◐';
-    btn.querySelector('.toggle-label').textContent = t === 'dark' ? 'Claro' : 'Oscuro';
+    var btn = document.getElementById('themeBtn');
+    btn.querySelector('.t-icon').textContent  = t === 'dark' ? '☀' : '◐';
+    btn.querySelector('.t-label').textContent = t === 'dark' ? 'Claro' : 'Oscuro';
   }
   document.addEventListener('DOMContentLoaded', function () {
-    const saved = localStorage.getItem(KEY);
-    const dark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var saved = localStorage.getItem(KEY);
+    var dark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
     applyTheme(saved || (dark ? 'dark' : 'light'));
-    document.getElementById('themeToggle').addEventListener('click', function () {
-      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      applyTheme(
+        document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+      );
     });
-    const y = new Date().getFullYear();
-    document.querySelectorAll('.footer-year').forEach(function(el){ el.textContent = y; });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+      if (!localStorage.getItem(KEY)) applyTheme(e.matches ? 'dark' : 'light');
+    });
+    var y = new Date().getFullYear();
+    document.querySelectorAll('.auto-year').forEach(function(el){ el.textContent = y; });
   });
 })();
 </script>
