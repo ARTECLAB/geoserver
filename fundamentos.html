@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeoServer 3 · De cero a producción · ARTECLAB</title>
+<title>Preparación para el curso · GeoServer 3 · ARTECLAB</title>
 <style>
-/* ── RESET Y BASE ───────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -19,8 +18,13 @@
   --border:     #E2E8F0;
   --text:       #0D1B3E;
   --muted:      #5A6478;
-  --r:          10px;
-  --t:          0.2s ease;
+  --code-bg:    #0D1B3E;
+  --code-text:  #E8EDF8;
+  --ok:         #1A6B3A;  --ok-bg:   #E8F5EE;
+  --info:       #1A4A8B;  --info-bg: #E8F0FB;
+  --warn:       #7A5200;  --warn-bg: #FFF8E6;
+  --r: 10px;
+  --t: 0.2s ease;
 }
 [data-theme="dark"] {
   --bg:        #080F20;
@@ -29,6 +33,10 @@
   --text:      #E8EDF8;
   --muted:     #8A97B4;
   --gold-pale: #1A1200;
+  --ok-bg:     #081A0E;  --ok:   #4ABA7A;
+  --info-bg:   #080F20;  --info: #6B9FE4;
+  --warn-bg:   #1A1200;  --warn: #E8B84B;
+  --code-bg:   #060E1F;
 }
 
 html { scroll-behavior: smooth; }
@@ -36,31 +44,20 @@ body {
   font-family: 'Segoe UI', system-ui, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  line-height: 1.6;
   transition: background var(--t), color var(--t);
 }
 
 /* ── TOGGLE ─────────────────────────────────────────────── */
-.toggle-wrap {
-  position: fixed;
-  top: 16px; right: 20px;
-  z-index: 200;
-}
+.toggle-wrap { position: fixed; top: 16px; right: 20px; z-index: 200; }
 .theme-btn {
   background: rgba(13,27,62,0.88);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px;
-  padding: 5px 12px;
-  cursor: pointer;
-  color: rgba(255,255,255,0.6);
-  font-size: 11px;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  border-radius: 20px; padding: 5px 12px;
+  cursor: pointer; color: rgba(255,255,255,0.6);
+  font-size: 11px; font-family: inherit;
+  display: flex; align-items: center; gap: 5px;
   transition: border-color .2s, color .2s;
 }
 .theme-btn:hover { border-color: var(--gold); color: var(--gold-light); }
@@ -68,40 +65,32 @@ body {
 /* ── HERO ────────────────────────────────────────────────── */
 .hero {
   background: var(--navy);
-  padding: 80px 24px 68px;
+  padding: 72px 24px 60px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 .hero::before {
   content: '';
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background-image:
     linear-gradient(rgba(200,155,60,0.06) 1px, transparent 1px),
     linear-gradient(90deg, rgba(200,155,60,0.06) 1px, transparent 1px);
   background-size: 44px 44px;
   pointer-events: none;
 }
-.hero-inner {
-  position: relative;
-  max-width: 560px;
-  margin: 0 auto;
+.hero-inner { position: relative; max-width: 600px; margin: 0 auto; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(200,155,60,0.12);
+  border: 1px solid rgba(200,155,60,0.25);
+  border-radius: 20px; padding: 4px 14px;
+  color: var(--gold-light); font-size: 11px;
+  font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; margin-bottom: 20px;
 }
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--gold);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  margin-bottom: 22px;
-}
-.hero-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
   background: var(--gold);
   animation: blink 2.4s ease-in-out infinite;
 }
@@ -109,230 +98,168 @@ body {
 
 .hero-title {
   color: #fff;
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.5px;
-  margin-bottom: 18px;
+  font-size: 36px; font-weight: 700;
+  line-height: 1.2; margin-bottom: 16px;
 }
 .hero-title em { color: var(--gold-light); font-style: normal; }
-
 .hero-desc {
   color: rgba(255,255,255,0.42);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 15px; line-height: 1.75;
+  margin-bottom: 28px;
+}
+.hero-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.hero-pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; color: rgba(255,255,255,0.5);
 }
 
-/* ── MAIN ────────────────────────────────────────────────── */
-main {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 56px 24px 72px;
-  flex: 1;
-  width: 100%;
-}
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.page { max-width: 760px; margin: 0 auto; padding: 52px 24px 80px; }
 
-/* ── LABEL DE SECCIÓN ────────────────────────────────────── */
+/* ── SECCIONES ───────────────────────────────────────────── */
+.section { margin-bottom: 52px; }
 .section-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 18px;
-  display: block;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 8px; display: block;
+}
+.section-title {
+  font-size: 20px; font-weight: 700; color: var(--text);
+  padding-bottom: 10px; margin-bottom: 4px;
+  border-bottom: 2px solid var(--gold);
+  display: inline-block;
+}
+.section-desc {
+  font-size: 14px; color: var(--muted);
+  margin: 10px 0 20px; line-height: 1.65;
 }
 
-/* ── CARDS "QUÉ APRENDERÁS" ─────────────────────────────── */
-.learn-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 56px;
+/* ── CALLOUTS ────────────────────────────────────────────── */
+.callout {
+  border-radius: 8px; padding: 14px 16px;
+  font-size: 13px; line-height: 1.65;
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-bottom: 12px;
+  transition: background var(--t);
 }
-.learn-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 20px 18px 18px;
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { flex: 1; }
+.callout-title { font-weight: 700; margin-bottom: 3px; font-size: 12px; }
+.callout-ok   { background: var(--ok-bg);   color: var(--ok);   border-left: 3px solid #2D8A52; }
+.callout-info { background: var(--info-bg); color: var(--info); border-left: 3px solid #3A7FD4; }
+.callout-warn { background: var(--warn-bg); color: var(--warn); border-left: 3px solid #C89B3C; }
+.callout-gold {
+  background: var(--gold-pale); color: var(--warn);
+  border-left: 3px solid var(--gold);
+}
+[data-theme="dark"] .callout-gold { color: var(--gold-light); }
+
+/* ── CÓDIGO ──────────────────────────────────────────────── */
+.code-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.code-block {
+  background: var(--code-bg); border-radius: 8px; padding: 16px 18px;
+  font-family: 'Cascadia Code','Fira Code','Consolas', monospace;
+  font-size: 13px; line-height: 1.7; color: var(--code-text);
+  overflow-x: auto; white-space: pre; margin-bottom: 16px;
+}
+.code-block .c  { color: #6A8FAF; }
+.code-block .k  { color: var(--gold-light); }
+.code-block .s  { color: #98D982; }
+.code-block .n  { color: #7EC8E3; }
+
+/* ── CONCEPT CARDS ───────────────────────────────────────── */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.concept-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px;
   transition: background var(--t), border-color var(--t);
 }
-.learn-icon { font-size: 22px; margin-bottom: 12px; display: block; }
-.learn-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 5px;
-  line-height: 1.3;
-}
-.learn-desc {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.6;
-}
+.concept-card:hover { border-color: var(--gold); }
+.concept-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+.concept-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.concept-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
 
-/* ── LISTA DE CLASES ─────────────────────────────────────── */
-.class-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 56px;
-}
-.class-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 13px 16px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
+/* ── CHECK LIST ──────────────────────────────────────────── */
+.check-list { display: flex; flex-direction: column; gap: 8px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
   transition: background var(--t), border-color var(--t);
 }
-.class-num {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: rgba(200,155,60,0.1);
-  color: var(--gold);
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.check-mark {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(200,155,60,0.1); color: var(--warn);
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
 }
-[data-theme="dark"] .class-num {
-  background: rgba(200,155,60,0.12);
-  color: var(--gold-light);
-}
-.class-body { flex: 1; min-width: 0; }
-.class-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.3;
-}
-.class-sub {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.class-pill {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--muted);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 2px 9px;
-  white-space: nowrap;
-}
+[data-theme="dark"] .check-mark { background: rgba(200,155,60,0.15); color: var(--gold-light); }
+.check-text { flex: 1; line-height: 1.5; }
+.check-bold { font-size: 13px; font-weight: 700; color: var(--text); }
+.check-sub  { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
-/* ── OTROS CURSOS ────────────────────────────────────────── */
-.courses-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 56px;
+/* ── TABLA ───────────────────────────────────────────────── */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+.compare-table th {
+  background: var(--navy); color: var(--gold-light);
+  font-weight: 700; padding: 10px 14px;
+  text-align: left; font-size: 11px; letter-spacing: .5px;
 }
-.course-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 18px 20px;
-  text-decoration: none;
-  display: block;
+.compare-table td {
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text); vertical-align: top; line-height: 1.45;
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table tr:nth-child(even) td { background: var(--bg); }
+
+/* ── LINKS ───────────────────────────────────────────────── */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 10px; margin-top: 16px;
+}
+.link-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px 16px;
+  text-decoration: none; display: flex; align-items: center; gap: 12px;
   transition: background var(--t), border-color .15s, transform .15s;
 }
-.course-card:hover { border-color: var(--gold); transform: translateY(-2px); }
-.course-tag {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 6px;
-}
-.course-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-.course-desc  { font-size: 12px; color: var(--muted); line-height: 1.55; }
-
-/* ── INSTRUCTOR ──────────────────────────────────────────── */
-.instructor-row {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 20px 24px;
-  transition: background var(--t), border-color var(--t);
-}
-.inst-avatar {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: var(--navy);
-  border: 2px solid var(--gold);
-  color: var(--gold-light);
-  font-size: 16px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-[data-theme="dark"] .inst-avatar { background: var(--navy-light); }
-.inst-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.inst-role  { font-size: 12px; color: var(--muted); margin-bottom: 9px; line-height: 1.4; }
-.inst-links { display: flex; gap: 8px; flex-wrap: wrap; }
-.inst-link {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--gold);
-  text-decoration: none;
-  border: 1px solid rgba(200,155,60,.3);
-  border-radius: 20px;
-  padding: 3px 11px;
-  transition: background .15s, border-color .15s;
-}
-.inst-link:hover { background: var(--gold-pale); border-color: var(--gold); }
+.link-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.link-icon { font-size: 20px; flex-shrink: 0; }
+.link-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.link-url   { font-size: 11px; color: var(--gold); }
 
 /* ── FOOTER ──────────────────────────────────────────────── */
 .site-footer {
-  background: var(--navy);
-  padding: 18px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  background: var(--navy); padding: 18px 28px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; flex-wrap: wrap;
 }
 .footer-left { display: flex; align-items: center; gap: 10px; }
 .badge {
-  background: var(--gold);
-  color: var(--navy);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 4px;
+  background: var(--gold); color: var(--navy);
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
 }
 .footer-copy { font-size: 11px; color: rgba(255,255,255,0.3); }
 .footer-copy a { color: var(--gold); text-decoration: none; }
 .footer-right { font-size: 11px; color: rgba(255,255,255,0.3); }
 
-/* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 560px) {
-  .hero { padding: 60px 20px 52px; }
-  .hero-title { font-size: 28px; }
-  .instructor-row { flex-direction: column; text-align: center; }
-  .inst-links { justify-content: center; }
+  .hero { padding: 56px 20px 48px; }
+  .hero-title { font-size: 26px; }
+  .page { padding: 36px 18px 60px; }
   .site-footer { justify-content: center; text-align: center; }
-  .class-pill { display: none; }
-  .class-sub  { white-space: normal; }
 }
 </style>
 </head>
@@ -348,166 +275,349 @@ main {
 <!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
-    <div class="hero-eyebrow">
-      <span class="hero-dot"></span>
-      GeoServer 3 &nbsp;·&nbsp; ARTECLAB &nbsp;·&nbsp; <span class="auto-year"></span>
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      GeoServer 3 · ARTECLAB · Material de referencia
     </div>
     <h1 class="hero-title">
-      Publica mapas.<br>
-      Sirve datos.<br>
-      <em>Domina GeoServer.</em>
+      Preparación<br>
+      <em>para el curso</em>
     </h1>
     <p class="hero-desc">
-      Instala, configura y despliega GeoServer 3 en Debian 13.
-      Publica capas desde PostGIS, diseña estilos cartográficos y conecta
-      todo a un visor web. Curso práctico de nivel intermedio.
+      Una guía para repasar los conceptos que usaremos en GeoServer 3.
+      Si algo no lo conoces aún, no te preocupes —
+      en clase lo aprenderemos y practicaremos juntos.
     </p>
+    <div class="hero-pills">
+      <span class="hero-pill">🐧 Linux básico</span>
+      <span class="hero-pill">☕ Java y Tomcat</span>
+      <span class="hero-pill">🌐 Estándares OGC</span>
+      <span class="hero-pill">🗺️ Conceptos GIS</span>
+    </div>
   </div>
 </section>
 
-<!-- MAIN -->
-<main>
+<!-- CONTENIDO -->
+<div class="page">
 
-  <!-- Qué aprenderás -->
-  <span class="section-label">Qué aprenderás en este curso</span>
-  <div class="learn-grid">
-    <div class="learn-card">
-      <span class="learn-icon">🖥️</span>
-      <div class="learn-title">Instalación en Linux</div>
-      <div class="learn-desc">Java 17, Tomcat y despliegue del archivo WAR en Debian 13 con VirtualBox.</div>
-    </div>
-    <div class="learn-card">
-      <span class="learn-icon">🐳</span>
-      <div class="learn-title">ogr2ogr y conversión de datos</div>
-      <div class="learn-desc">Importa Shapefiles y datos geoespaciales a PostGIS con ogr2ogr desde la VM.</div>
-    </div>
-    <div class="learn-card">
-      <span class="learn-icon">🗺️</span>
-      <div class="learn-title">Publicación de capas</div>
-      <div class="learn-desc">Workspaces, Stores y Layers. Shapefiles, grupos de capas y un GeoTIFF de ejemplo.</div>
-    </div>
-    <div class="learn-card">
-      <span class="learn-icon">🎨</span>
-      <div class="learn-title">Estilos SLD y CSS</div>
-      <div class="learn-desc">Simbología por categoría, etiquetas, escala dependiente y ColorMap básico.</div>
-    </div>
-    <div class="learn-card">
-      <span class="learn-icon">🗄️</span>
-      <div class="learn-title">PostGIS como fuente</div>
-      <div class="learn-desc">Importa datos, crea vistas SQL y publica capas directamente desde la base de datos.</div>
-    </div>
-    <div class="learn-card">
-      <span class="learn-icon">🔒</span>
-      <div class="learn-title">Servicios OGC y seguridad</div>
-      <div class="learn-desc">WMS, WFS, WMTS, filtros CQL y control de acceso por roles y workspace.</div>
-    </div>
-  </div>
+  <!-- ── BLOQUE 1: LINUX ─────────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 1</span>
+    <h2 class="section-title">Linux — comandos que usaremos</h2>
+    <p class="section-desc">
+      GeoServer corre en Debian 13 dentro de VirtualBox. Estos comandos
+      aparecen en las primeras clases. Si algunos son nuevos para ti,
+      los iremos viendo juntos paso a paso.
+    </p>
 
-  <!-- Las 8 clases -->
-  <span class="section-label">8 clases · 16 horas · cuestionarios de práctica</span>
-  <div class="class-list">
-    <div class="class-row">
-      <div class="class-num">1</div>
-      <div class="class-body">
-        <div class="class-title">Fundamentos y arquitectura de GeoServer 3</div>
-        <div class="class-sub">Workspace · Store · Layer · servicios OGC · interfaz administrativa</div>
-      </div>
-      <span class="class-pill">2h · 16 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">2</div>
-      <div class="class-body">
-        <div class="class-title">Instalación en Linux — Debian 13 con VirtualBox</div>
-        <div class="class-sub">Java 17 · Tomcat desde apt · despliegue WAR · primera conexión</div>
-      </div>
-      <span class="class-pill">2h · 16 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">3</div>
-      <div class="class-body">
-        <div class="class-title">PostGIS y ogr2ogr</div>
-        <div class="class-sub">PostGIS en la VM · ogr2ogr · importar Shapefiles · conexión con GeoServer</div>
-      </div>
-      <span class="class-pill">2h · 13 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">4</div>
-      <div class="class-body">
-        <div class="class-title">Publicación de capas</div>
-        <div class="class-sub">Shapefiles · Layer Groups · Layer Preview · GeoTIFF básico</div>
-      </div>
-      <span class="class-pill">2h · 14 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">5</div>
-      <div class="class-body">
-        <div class="class-title">Estilos SLD y CSS cartográfico</div>
-        <div class="class-sub">Simbología · etiquetas · escala dependiente · ColorMap básico</div>
-      </div>
-      <span class="class-pill">2h · 12 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">6</div>
-      <div class="class-body">
-        <div class="class-title">PostGIS + GeoServer</div>
-        <div class="class-sub">Conexión directa · vistas SQL · publicación desde base de datos</div>
-      </div>
-      <span class="class-pill">2h · 13 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">7</div>
-      <div class="class-body">
-        <div class="class-title">Servicios OGC, seguridad y filtros CQL</div>
-        <div class="class-sub">WMS · WFS · WMTS · roles · control de acceso por workspace</div>
-      </div>
-      <span class="class-pill">2h · 13 slides</span>
-    </div>
-    <div class="class-row">
-      <div class="class-num">8</div>
-      <div class="class-body">
-        <div class="class-title">Proyecto final — IDE Municipal</div>
-        <div class="class-sub">PostGIS + GeoServer + visor OpenLayers · despliegue completo</div>
-      </div>
-      <span class="class-pill">2h · 11 slides</span>
-    </div>
-  </div>
+    <div class="code-label">Los comandos más frecuentes del curso</div>
+    <div class="code-block"><span class="c"># Navegar el sistema de archivos</span>
+<span class="k">pwd</span>                         <span class="c"># ver en qué carpeta estás</span>
+<span class="k">ls</span> -la                      <span class="c"># listar archivos con detalles</span>
+<span class="k">cd</span> /opt/tomcat/webapps      <span class="c"># entrar a una carpeta</span>
+<span class="k">cd</span> ..                       <span class="c"># subir un nivel</span>
 
-  <!-- Otros cursos -->
-  <span class="section-label">Más cursos con Daniel Quisbert</span>
-  <div class="courses-row">
-    <a href="https://fluttergis.danielquisbert.com" target="_blank" class="course-card">
-      <div class="course-tag">Curso activo</div>
-      <div class="course-title">📱 Flutter GIS</div>
-      <div class="course-desc">Apps geoespaciales con Flutter. Mapas, GPS y conexión a GeoServer desde Android e iOS.</div>
-    </a>
-    <a href="https://danielquisbert.com/cursos" target="_blank" class="course-card">
-      <div class="course-tag">Ver todos</div>
-      <div class="course-title">🌐 Webmapping</div>
-      <div class="course-desc">Visores web con OpenLayers. Consumo de servicios OGC y despliegue en producción.</div>
-    </a>
-    <a href="https://danielquisbert.com/cursos" target="_blank" class="course-card">
-      <div class="course-tag">Ver todos</div>
-      <div class="course-title">🗄️ PostGIS</div>
-      <div class="course-desc">Bases de datos espaciales con PostgreSQL, consultas ST_ y análisis geoespacial.</div>
-    </a>
-  </div>
+<span class="c"># Trabajar con archivos</span>
+<span class="k">cp</span>  geoserver.war /destino/ <span class="c"># copiar un archivo</span>
+<span class="k">mv</span>  archivo /destino/       <span class="c"># mover o renombrar</span>
+<span class="k">rm</span>  archivo                 <span class="c"># eliminar</span>
+<span class="k">nano</span> /etc/archivo.conf      <span class="c"># editar un texto</span>
 
-  <!-- Instructor -->
-  <span class="section-label">Instructor</span>
-  <div class="instructor-row">
-    <div class="inst-avatar">DQ</div>
-    <div>
-      <div class="inst-name">Daniel Quisbert</div>
-      <div class="inst-role">Instructor GIS · ARTECLAB<br>GeoServer · PostGIS · Flutter · Webmapping</div>
-      <div class="inst-links">
-        <a href="https://danielquisbert.com" target="_blank" class="inst-link">danielquisbert.com ↗</a>
-        <a href="https://geoserver-pro.danielquisbert.com" target="_blank" class="inst-link">GeoServer Pro ↗</a>
-        <a href="https://fluttergis.danielquisbert.com" target="_blank" class="inst-link">Flutter GIS ↗</a>
+<span class="c"># Gestionar servicios con systemctl</span>
+<span class="k">sudo systemctl</span> start  tomcat <span class="c"># iniciar Tomcat</span>
+<span class="k">sudo systemctl</span> stop   tomcat <span class="c"># detener Tomcat</span>
+<span class="k">sudo systemctl</span> status tomcat <span class="c"># ver si está activo</span>
+
+<span class="c"># Ver logs en tiempo real — el más útil del curso</span>
+<span class="k">tail</span> -f /var/log/tomcat10/catalina.out</div>
+
+    <div class="callout callout-gold">
+      <span class="callout-icon">⭐</span>
+      <div class="callout-body">
+        <div class="callout-title">El comando más importante del curso</div>
+        <code>tail -f /var/log/tomcat10/catalina.out</code> muestra los logs
+        de Tomcat en tiempo real. Cuando algo no funciona, este es el primer lugar donde mirar.
       </div>
     </div>
-  </div>
 
-</main>
+    <div class="links-grid">
+      <a class="link-card" href="https://www.debian.org/doc/manuals/debian-reference/ch01.en.html" target="_blank">
+        <span class="link-icon">🐧</span>
+        <div><div class="link-title">Manual de referencia Debian</div><div class="link-url">debian.org/doc</div></div>
+      </a>
+      <a class="link-card" href="https://www.digitalocean.com/community/tutorials/linux-commands" target="_blank">
+        <span class="link-icon">📖</span>
+        <div><div class="link-title">Comandos Linux esenciales</div><div class="link-url">digitalocean.com/community</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── BLOQUE 2: JAVA Y TOMCAT ────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 2</span>
+    <h2 class="section-title">Java y Tomcat — lo que necesitas saber</h2>
+    <p class="section-desc">
+      GeoServer es una aplicación Java que corre dentro de Tomcat.
+      No es necesario saber programar en Java — en clase instalaremos
+      todo juntos y explicaremos cada paso con calma.
+    </p>
+
+    <div class="callout callout-warn" style="margin-bottom:18px;">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <div class="callout-title">Dato clave para el curso</div>
+        GeoServer 3 requiere <strong>Java 17</strong> y <strong>Tomcat 10</strong>.
+        En Debian 13, ambos se instalan con <code>apt</code> — sin descargas manuales.
+        Tomcat 9 ya no es compatible con GeoServer 3.
+      </div>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <span class="concept-icon">☕</span>
+        <div class="concept-name">Java JDK 17</div>
+        <div class="concept-desc">Motor que ejecuta GeoServer. En Debian 13:<br>
+        <code>sudo apt install default-jdk</code><br>
+        Verificar: <code>java -version</code></div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🐈</span>
+        <div class="concept-name">Apache Tomcat 10</div>
+        <div class="concept-desc">Servidor web Java. En Debian 13:<br>
+        <code>sudo apt install tomcat10</code><br>
+        Sin descargas ni instaladores manuales.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">📦</span>
+        <div class="concept-name">Archivo WAR</div>
+        <div class="concept-desc">El instalador de GeoServer. Es un archivo
+        <code>.war</code> que se copia en la carpeta <code>webapps/</code>
+        de Tomcat. Tomcat lo despliega solo.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🧠</span>
+        <div class="concept-name">Memoria Java (Heap)</div>
+        <div class="concept-desc">GeoServer necesita memoria asignada con
+        <code>JAVA_OPTS="-Xms512m -Xmx2g"</code>. Con 6GB de RAM en la VM
+        hay espacio de sobra.</div>
+      </div>
+    </div>
+
+    <div class="code-label">Verificar la instalación</div>
+    <div class="code-block"><span class="c"># Verificar Java</span>
+<span class="k">java</span> -version
+<span class="c"># Debe mostrar: openjdk version "17..."</span>
+
+<span class="c"># Verificar Tomcat activo</span>
+<span class="k">sudo systemctl</span> status tomcat10
+<span class="c"># Debe mostrar: active (running)</span>
+
+<span class="c"># Abrir en el navegador de la VM</span>
+<span class="n">http://localhost:8080</span>
+<span class="c"># Debe mostrar la página de bienvenida de Tomcat</span></div>
+  </section>
+
+  <!-- ── BLOQUE 3: OGC ──────────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 3</span>
+    <h2 class="section-title">Estándares OGC — cómo hablan los mapas web</h2>
+    <p class="section-desc">
+      GeoServer implementa los estándares OGC. Si es la primera vez
+      que los ves, los explicaremos con ejemplos reales en clase.
+      Esta tabla es solo una referencia para consultar.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr><th>Servicio</th><th>Nombre completo</th><th>¿Qué devuelve?</th><th>Cuándo se usa</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>WMS</strong></td><td>Web Map Service</td><td>Imagen PNG del mapa ya renderizado</td><td>Visualizar capas en apps y visores web</td></tr>
+        <tr><td><strong>WFS</strong></td><td>Web Feature Service</td><td>Datos vectoriales en GeoJSON o GML</td><td>Descargar y analizar datos en el cliente</td></tr>
+        <tr><td><strong>WMTS</strong></td><td>Web Map Tile Service</td><td>Teselas pre-generadas en caché</td><td>Mapas base de alta velocidad</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">🔗</span>
+      <div class="callout-body">
+        <div class="callout-title">Una petición WMS vista desde el navegador</div>
+        Con GeoServer activo, prueba esta URL directamente en el navegador —
+        verás el mapa de Bolivia como una imagen PNG:
+        <code style="display:block;margin-top:6px;font-size:11px;word-break:break-all;">
+          http://localhost:8080/geoserver/wms?SERVICE=WMS&REQUEST=GetMap&LAYERS=workspace:capa&FORMAT=image/png&WIDTH=512&HEIGHT=512&CRS=EPSG:4326&BBOX=-22.9,-69.6,-9.7,-57.5
+        </code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BLOQUE 4: ARQUITECTURA GS ─────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 4</span>
+    <h2 class="section-title">Arquitectura GeoServer — Workspace · Store · Layer</h2>
+    <p class="section-desc">
+      Todo en GeoServer sigue esta jerarquía sencilla.
+      La veremos en detalle desde la primera clase con ejemplos prácticos.
+    </p>
+
+    <div class="check-list">
+      <div class="check-item">
+        <div class="check-mark">📁</div>
+        <div class="check-text">
+          <div class="check-bold">Workspace — el contenedor del proyecto</div>
+          <div class="check-sub">Agrupa todas las capas de un mismo proyecto. Aparece en la URL: <code>/geoserver/bolivia_curso/wms</code></div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">🗄️</div>
+        <div class="check-text">
+          <div class="check-bold">Store — la fuente de datos</div>
+          <div class="check-sub">Apunta al dato original: una carpeta con Shapefiles o una base de datos PostGIS. Un Workspace puede tener varios Stores.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">🗺️</div>
+        <div class="check-text">
+          <div class="check-bold">Layer — la capa publicada</div>
+          <div class="check-sub">Lo que el cliente final consume via WMS o WFS. Cada capa tiene un estilo SLD asignado. Se identifica como <code>workspace:nombre</code></div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">🎨</div>
+        <div class="check-text">
+          <div class="check-bold">Style (SLD) — el estilo visual</div>
+          <div class="check-sub">Define colores, bordes y etiquetas de la capa. GeoServer también acepta CSS, que es más fácil de escribir. Lo vemos en la Clase 5.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-gold" style="margin-top:16px;">
+      <span class="callout-icon">⭐</span>
+      <div class="callout-body">
+        <div class="callout-title">La URL lo dice todo</div>
+        <code>http://servidor:8080/geoserver/<strong>bolivia_curso</strong>/wms?LAYERS=<strong>bolivia_curso:departamentos</strong></code><br>
+        <span style="font-size:11px;margin-top:4px;display:block;">workspace = bolivia_curso &nbsp;·&nbsp; capa = departamentos</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BLOQUE 5: CONCEPTOS GIS ────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 5</span>
+    <h2 class="section-title">Conceptos GIS del curso</h2>
+    <p class="section-desc">
+      Estos términos aparecen desde la primera clase.
+      Si son nuevos para ti, los explicaremos cuando los usemos.
+    </p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <span class="concept-icon">📍</span>
+        <div class="concept-name">Coordenadas — EPSG:4326</div>
+        <div class="concept-desc"><strong>Latitud:</strong> norte/sur (−90 a 90). <strong>Longitud:</strong> este/oeste (−180 a 180). La Paz: lat −16.50, lon −68.15. El sistema EPSG:4326 es el estándar WGS 84.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">📐</span>
+        <div class="concept-name">Vectorial vs Raster</div>
+        <div class="concept-desc"><strong>Vectorial:</strong> puntos, líneas y polígonos con atributos. Usamos Shapefiles y PostGIS. <strong>Raster:</strong> cuadrícula de píxeles. En el curso publicaremos un GeoTIFF básico.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">📁</span>
+        <div class="concept-name">Shapefile</div>
+        <div class="concept-desc">El formato vectorial del curso. Siempre viene en varios archivos juntos: <code>.shp</code>, <code>.dbf</code>, <code>.shx</code> y <code>.prj</code>. Deben estar todos en la misma carpeta.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🗄️</span>
+        <div class="concept-name">PostGIS</div>
+        <div class="concept-desc">Extensión espacial de PostgreSQL. Permite guardar y consultar geometrías (puntos, líneas, polígonos) en una base de datos relacional. Lo instalamos en la VM en la Clase 3.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🔍</span>
+        <div class="concept-name">BBox — Bounding Box</div>
+        <div class="concept-desc">El rectángulo que envuelve una capa o zona del mapa. Formato: minLon, minLat, maxLon, maxLat. GeoServer lo usa en peticiones WMS para definir el área de la imagen.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🔢</span>
+        <div class="concept-name">CQL Filter</div>
+        <div class="concept-desc">Filtro de GeoServer para mostrar solo parte de una capa. Ejemplo: <code>departamento='LA PAZ'</code> muestra solo ese departamento en el WMS.</div>
+      </div>
+    </div>
+
+    <div class="links-grid">
+      <a class="link-card" href="https://epsg.io/4326" target="_blank">
+        <span class="link-icon">🌐</span>
+        <div><div class="link-title">EPSG:4326 — WGS 84</div><div class="link-url">epsg.io/4326</div></div>
+      </a>
+      <a class="link-card" href="https://geojson.io" target="_blank">
+        <span class="link-icon">🗺️</span>
+        <div><div class="link-title">geojson.io — ver coordenadas visualmente</div><div class="link-url">geojson.io</div></div>
+      </a>
+      <a class="link-card" href="https://docs.geoserver.org" target="_blank">
+        <span class="link-icon">📖</span>
+        <div><div class="link-title">Documentación oficial GeoServer</div><div class="link-url">docs.geoserver.org</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── BLOQUE 6: ANTES DE LA CLASE 1 ─────────────────── -->
+  <section class="section" style="margin-bottom:0;">
+    <span class="section-label">Antes de la primera clase</span>
+    <h2 class="section-title">¿Qué tener listo?</h2>
+    <p class="section-desc">
+      Si puedes tener esto preparado, el arranque será más fluido.
+      Si tienes algún inconveniente, lo resolvemos juntos en clase.
+    </p>
+
+    <div class="check-list">
+      <div class="check-item">
+        <div class="check-mark">1</div>
+        <div class="check-text">
+          <div class="check-bold">VirtualBox instalado con una VM de Debian 13</div>
+          <div class="check-sub">Mínimo 6 GB de RAM y 30 GB de disco asignados a la VM. El instructor compartirá la imagen o los pasos de instalación.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">2</div>
+        <div class="check-text">
+          <div class="check-bold">Java 17 instalado en la VM</div>
+          <div class="check-sub"><code>sudo apt install default-jdk</code> — verificar con <code>java -version</code>. Sin Java 17 GeoServer 3 no arranca.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">3</div>
+        <div class="check-text">
+          <div class="check-bold">Tomcat 10 instalado en la VM</div>
+          <div class="check-sub"><code>sudo apt install tomcat10</code> — verificar en el navegador de la VM: <code>http://localhost:8080</code> debe mostrar la página de Tomcat.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">4</div>
+        <div class="check-text">
+          <div class="check-bold">Archivo WAR de GeoServer 3 descargado</div>
+          <div class="check-sub">De <strong>geoserver.org/download</strong>. Solo el archivo <code>.war</code>. El instructor indicará la versión exacta a usar.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">5</div>
+        <div class="check-text">
+          <div class="check-bold">QGIS instalado en tu computadora local</div>
+          <div class="check-sub">Lo usamos para conectarnos al WMS de GeoServer y verificar que las capas se ven correctamente desde un cliente externo.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-ok" style="margin-top:18px;">
+      <span class="callout-icon">✓</span>
+      <div class="callout-body">
+        <div class="callout-title">Prueba de que todo funciona</div>
+        Si ves la página de bienvenida de Tomcat en
+        <code>http://localhost:8080</code>, estás listo para la Clase 2
+        donde instalaremos GeoServer. Si no llegaste a ese punto, lo resolvemos juntos en clase.
+      </div>
+    </div>
+  </section>
+
+</div>
 
 <!-- FOOTER -->
 <footer class="site-footer">
@@ -516,10 +626,10 @@ main {
     <span class="footer-copy">
       © <span class="auto-year"></span>
       <a href="https://danielquisbert.com" target="_blank"> Daniel Quisbert</a>
-      · Material educativo de libre acceso
+      · Material de referencia — GeoServer 3
     </span>
   </div>
-  <div class="footer-right">GeoServer 3 · <span class="auto-year"></span></div>
+  <div class="footer-right">geoserver-pro.danielquisbert.com · <span class="auto-year"></span></div>
 </footer>
 
 <script>
@@ -537,12 +647,7 @@ main {
     var dark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
     applyTheme(saved || (dark ? 'dark' : 'light'));
     document.getElementById('themeBtn').addEventListener('click', function () {
-      applyTheme(
-        document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-      );
-    });
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-      if (!localStorage.getItem(KEY)) applyTheme(e.matches ? 'dark' : 'light');
+      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     });
     var y = new Date().getFullYear();
     document.querySelectorAll('.auto-year').forEach(function(el){ el.textContent = y; });
