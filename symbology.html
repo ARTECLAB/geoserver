@@ -114,28 +114,29 @@
     <div class="callout callout-ok" style="margin-top:10px;"><span class="callout-icon">✓</span><div class="callout-body">GeoServer convierte CSS a SLD internamente. El resultado es idéntico — el código no.</div></div>
     </div></div></div></div>
 
-    <div class="slide slide-content"><div class="slide-label">Raster</div><div class="slide-title">ColorMap para el DEM — elevación en colores</div><div class="slide-body">
+    <div class="slide slide-content"><div class="slide-label">GeoTIFF</div><div class="slide-title">ColorMap para el GeoTIFF — imágenes con color</div><div class="slide-body">
     <div class="two-col">
-    <div><div class="code-label">RasterSymbolizer con ColorMap de tipo ramp</div>
+    <div><div class="code-label">RasterSymbolizer básico para el GeoTIFF de Bolivia</div>
     <div class="code-block">&lt;<span class="k">RasterSymbolizer</span>&gt;
+  &lt;<span class="c">&lt;!-- Opacidad de la imagen: 1.0 = sólido --&gt;</span>
+  &lt;<span class="n">Opacity</span>&gt;1.0&lt;/<span class="n">Opacity</span>&gt;
+
+  &lt;<span class="c">&lt;!-- ColorMap: asigna colores a rangos de valor --&gt;</span>
   &lt;<span class="n">ColorMap</span> type=<span class="s">"ramp"</span>&gt;
     &lt;<span class="n">ColorMapEntry</span>
-      color=<span class="s">"#006400"</span> quantity=<span class="s">"200"</span>
-      label=<span class="s">"Tierras bajas"/</span>&gt;
+      color=<span class="s">"#1a9641"</span> quantity=<span class="s">"0"</span>
+      label=<span class="s">"Bajo"/</span>&gt;
     &lt;<span class="n">ColorMapEntry</span>
-      color=<span class="s">"#ADFF2F"</span> quantity=<span class="s">"1500"</span>
-      label=<span class="s">"Altiplano bajo"/</span>&gt;
+      color=<span class="s">"#ffffb2"</span> quantity=<span class="s">"128"</span>
+      label=<span class="s">"Medio"/</span>&gt;
     &lt;<span class="n">ColorMapEntry</span>
-      color=<span class="s">"#8B4513"</span> quantity=<span class="s">"4000"</span>
-      label=<span class="s">"Cordillera"/</span>&gt;
-    &lt;<span class="n">ColorMapEntry</span>
-      color=<span class="s">"#FFFFFF"</span> quantity=<span class="s">"6542"</span>
-      label=<span class="s">"Nevados"/</span>&gt;
+      color=<span class="s">"#d7191c"</span> quantity=<span class="s">"255"</span>
+      label=<span class="s">"Alto"/</span>&gt;
   &lt;/<span class="n">ColorMap</span>&gt;
 &lt;/<span class="k">RasterSymbolizer</span>&gt;</div></div>
     <div>
-    <div class="img-placeholder"><div class="ph-icon">🏔️</div><div class="ph-name">dem-colormap-result.jpg</div><div class="ph-label">DEM con gradiente de elevación verde → marrón → blanco</div></div>
-    <div class="callout callout-info" style="margin-top:10px;"><span class="callout-icon">📊</span><div class="callout-body"><code>type="ramp"</code> = gradiente continuo. <code>type="intervals"</code> = bandas de color discretas. <code>type="values"</code> = solo valores exactos.</div></div>
+    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">💡</span><div class="callout-body"><div class="callout-title">quantity = valor del píxel</div>En un GeoTIFF de 8 bits los valores van de 0 a 255. En un modelo de elevación van en metros. El ColorMap mapea esos valores a colores.</div></div>
+    <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body"><code>type="ramp"</code> crea un gradiente continuo entre los colores definidos — ideal para imágenes. <code>type="intervals"</code> crea bandas discretas de color.</div></div>
     </div></div></div></div>
 
     <div class="slide slide-content"><div class="slide-label">Resumen</div><div class="slide-title">Lo que aprendiste hoy</div><div class="slide-body">
@@ -146,7 +147,7 @@
     <li>El Halo en TextSymbolizer hace legibles las etiquetas sobre cualquier fondo</li>
     <li>La escala dependiente controla qué se ve según el nivel de zoom del mapa</li>
     <li>CSS Styles produce el mismo resultado que SLD con 4-5 veces menos código</li>
-    <li>ColorMap type="ramp" crea gradientes continuos para datos raster como DEMs</li>
+    <li>RasterSymbolizer + ColorMap type="ramp" asigna colores al GeoTIFF por rangos de valor del píxel</li>
     </ul>
     <div><div class="callout callout-info"><span class="callout-icon">🗄️</span><div class="callout-body"><div class="callout-title">Próxima clase</div>PostGIS como fuente de datos para GeoServer. Los estilos que creamos hoy se aplicarán a capas que vienen directamente de la base de datos.</div></div></div>
     </div></div></div>
