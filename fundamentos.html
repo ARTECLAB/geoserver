@@ -329,17 +329,27 @@ body {
 <span class="k">sudo systemctl</span> status tomcat <span class="c"># ver si está activo</span>
 
 <span class="c"># Ver logs en tiempo real — el más útil del curso</span>
-<span class="k">tail</span> -f /var/log/tomcat10/catalina.out</div>
+<span class="k">tail</span> -f /var/log/tomcat11/catalina.out</div>
 
     <div class="callout callout-gold">
       <span class="callout-icon">⭐</span>
       <div class="callout-body">
         <div class="callout-title">El comando más importante del curso</div>
-        <code>tail -f /var/log/tomcat10/catalina.out</code> muestra los logs
+        <code>tail -f /var/log/tomcat11/catalina.out</code> muestra los logs
         de Tomcat en tiempo real. Cuando algo no funciona, este es el primer lugar donde mirar.
       </div>
     </div>
 
+    <div class="callout callout-info" style="margin-top:12px;">
+      <span class="callout-icon">🌐</span>
+      <div class="callout-body">
+        <div class="callout-title">¿Cómo saber la IP de la VM?</div>
+        Ejecutar <code>ip a</code> en la terminal de la VM. La IP de la interfaz de red
+        (algo como <code>192.168.1.X</code> o <code>10.0.2.X</code>) es la que
+        usas desde tu PC para acceder a GeoServer. El instructor configurará
+        la red de VirtualBox en la primera clase.
+      </div>
+    </div>
     <div class="links-grid">
       <a class="link-card" href="https://www.debian.org/doc/manuals/debian-reference/ch01.en.html" target="_blank">
         <span class="link-icon">🐧</span>
@@ -366,9 +376,9 @@ body {
       <span class="callout-icon">⚠️</span>
       <div class="callout-body">
         <div class="callout-title">Dato clave para el curso</div>
-        GeoServer 3 requiere <strong>Java 17</strong> y <strong>Tomcat 10</strong>.
-        En Debian 13, ambos se instalan con <code>apt</code> — sin descargas manuales.
-        Tomcat 9 ya no es compatible con GeoServer 3.
+        GeoServer 3 requiere <strong>Java 17 o 21</strong> y <strong>Tomcat 11</strong>.
+        La VM del curso viene con ambos preinstalados.
+        Tomcat 9 y 10 no son compatibles con GeoServer 3.
       </div>
     </div>
 
@@ -376,15 +386,13 @@ body {
       <div class="concept-card">
         <span class="concept-icon">☕</span>
         <div class="concept-name">Java JDK 17</div>
-        <div class="concept-desc">Motor que ejecuta GeoServer. En Debian 13:<br>
-        <code>sudo apt install default-jdk</code><br>
-        Verificar: <code>java -version</code></div>
+        <div class="concept-desc">Motor que ejecuta GeoServer. La VM del curso ya viene con Java 17 o 21 instalado. Verificar con: <code>java -version</code></div>
       </div>
       <div class="concept-card">
         <span class="concept-icon">🐈</span>
-        <div class="concept-name">Apache Tomcat 10</div>
+        <div class="concept-name">Apache Tomcat 11</div>
         <div class="concept-desc">Servidor web Java. En Debian 13:<br>
-        <code>sudo apt install tomcat10</code><br>
+        <code>sudo apt install tomcat11</code><br>
         Sin descargas ni instaladores manuales.</div>
       </div>
       <div class="concept-card">
@@ -409,12 +417,12 @@ body {
 <span class="c"># Debe mostrar: openjdk version "17..."</span>
 
 <span class="c"># Verificar Tomcat activo</span>
-<span class="k">sudo systemctl</span> status tomcat10
+<span class="k">sudo systemctl</span> status tomcat11
 <span class="c"># Debe mostrar: active (running)</span>
 
 <span class="c"># Abrir en el navegador de la VM</span>
-<span class="n">http://localhost:8080</span>
-<span class="c"># Debe mostrar la página de bienvenida de Tomcat</span></div>
+<span class="n">http://192.168.X.X:8080</span>
+<span class="c"># Reemplaza X.X con la IP de tu VM (ver con: ip a)</span></div>
   </section>
 
   <!-- ── BLOQUE 3: OGC ──────────────────────────────────── -->
@@ -445,7 +453,7 @@ body {
         Con GeoServer activo, prueba esta URL directamente en el navegador —
         verás el mapa de Bolivia como una imagen PNG:
         <code style="display:block;margin-top:6px;font-size:11px;word-break:break-all;">
-          http://localhost:8080/geoserver/wms?SERVICE=WMS&REQUEST=GetMap&LAYERS=workspace:capa&FORMAT=image/png&WIDTH=512&HEIGHT=512&CRS=EPSG:4326&BBOX=-22.9,-69.6,-9.7,-57.5
+          http://192.168.X.X:8080/geoserver/wms?SERVICE=WMS&REQUEST=GetMap&LAYERS=workspace:capa&FORMAT=image/png&WIDTH=512&HEIGHT=512&CRS=EPSG:4326&BBOX=-22.9,-69.6,-9.7,-57.5
         </code>
       </div>
     </div>
@@ -579,15 +587,15 @@ body {
       <div class="check-item">
         <div class="check-mark">2</div>
         <div class="check-text">
-          <div class="check-bold">Java 17 instalado en la VM</div>
-          <div class="check-sub"><code>sudo apt install default-jdk</code> — verificar con <code>java -version</code>. Sin Java 17 GeoServer 3 no arranca.</div>
+          <div class="check-bold">Java 17 o 21 — ya incluido en la VM del curso</div>
+          <div class="check-sub">La VM viene con Java preinstalado. Verificar con <code>java -version</code>. GeoServer 3 requiere mínimo Java 17.</div>
         </div>
       </div>
       <div class="check-item">
         <div class="check-mark">3</div>
         <div class="check-text">
-          <div class="check-bold">Tomcat 10 instalado en la VM</div>
-          <div class="check-sub"><code>sudo apt install tomcat10</code> — verificar en el navegador de la VM: <code>http://localhost:8080</code> debe mostrar la página de Tomcat.</div>
+          <div class="check-bold">Tomcat 11 — ya incluido en la VM del curso</div>
+          <div class="check-sub"><code>sudo apt install tomcat11</code> — verificar desde tu PC en <code>http://192.168.X.X:8080</code> (la IP de la VM). Usa <code>ip a</code> en la VM para ver su IP.</div>
         </div>
       </div>
       <div class="check-item">
@@ -611,8 +619,8 @@ body {
       <div class="callout-body">
         <div class="callout-title">Prueba de que todo funciona</div>
         Si ves la página de bienvenida de Tomcat en
-        <code>http://localhost:8080</code>, estás listo para la Clase 2
-        donde instalaremos GeoServer. Si no llegaste a ese punto, lo resolvemos juntos en clase.
+        <code>http://192.168.X.X:8080</code> desde tu PC (donde X.X es la IP de la VM),
+        estás listo para la Clase 2 donde instalaremos GeoServer. Si no llegaste a ese punto, lo resolvemos juntos en clase.
       </div>
     </div>
   </section>
