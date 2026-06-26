@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundamentos · GeoServer 3 · ARTECLAB</title>
+<style>
+/* ── RESET ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:        #0D1B3E;
+  --navy-light:  #1E3464;
+  --gold:        #C89B3C;
+  --gold-light:  #E8B84B;
+  --gold-pale:   #F5E6C0;
+  --bg:          #F4F6FA;
+  --card:        #FFFFFF;
+  --border:      #E2E8F0;
+  --text:        #0D1B3E;
+  --muted:       #5A6478;
+  --code-bg:     #0D1B3E;
+  --code-text:   #E8EDF8;
+  --ok:          #1A6B3A;
+  --ok-bg:       #E8F5EE;
+  --info:        #1A4A8B;
+  --info-bg:     #E8F0FB;
+  --warn:        #7A5200;
+  --warn-bg:     #FFF8E6;
+  --r: 10px;
+  --t: 0.2s ease;
+}
+[data-theme="dark"] {
+  --bg:        #080F20;
+  --card:      #0D1B3E;
+  --border:    #1E3464;
+  --text:      #E8EDF8;
+  --muted:     #8A97B4;
+  --code-bg:   #060E1F;
+  --code-text: #E8EDF8;
+  --gold-pale: #1A1200;
+  --ok-bg:     #081A0E;
+  --info-bg:   #080F20;
+  --warn-bg:   #1A1200;
+  --ok:        #4ABA7A;
+  --info:      #6B9FE4;
+  --warn:      #E8B84B;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background var(--t), color var(--t);
+}
+
+/* ── TOGGLE ─────────────────────────────────────────────── */
+.toggle-wrap { position: fixed; top: 16px; right: 20px; z-index: 200; }
+.theme-btn {
+  background: rgba(13,27,62,0.88);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px; padding: 5px 12px;
+  cursor: pointer; color: rgba(255,255,255,0.6);
+  font-size: 11px; font-family: inherit;
+  display: flex; align-items: center; gap: 5px;
+  transition: border-color .2s, color .2s;
+}
+.theme-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+
+/* ── HERO ────────────────────────────────────────────────── */
+.hero {
+  background: var(--navy);
+  padding: 64px 24px 52px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(200,155,60,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,155,60,0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+}
+.hero-inner { position: relative; max-width: 600px; margin: 0 auto; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(200,155,60,0.12);
+  border: 1px solid rgba(200,155,60,0.25);
+  border-radius: 20px; padding: 4px 14px;
+  color: var(--gold-light); font-size: 11px;
+  font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; margin-bottom: 20px;
+}
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold);
+  animation: blink 2.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero-title { color: #fff; font-size: 34px; font-weight: 700; line-height: 1.2; margin-bottom: 14px; }
+.hero-title em { color: var(--gold-light); font-style: normal; }
+.hero-desc { color: rgba(255,255,255,0.42); font-size: 15px; line-height: 1.75; margin-bottom: 28px; }
+.hero-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.hero-pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; color: rgba(255,255,255,0.5);
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.page { max-width: 760px; margin: 0 auto; padding: 52px 24px 80px; }
+
+/* ── SECCIONES ───────────────────────────────────────────── */
+.section { margin-bottom: 56px; }
+.section-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 6px; display: block;
+}
+.section-title {
+  font-size: 20px; font-weight: 700;
+  color: var(--text); margin-bottom: 4px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold);
+  display: inline-block;
+}
+.section-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; margin-top: 10px; line-height: 1.65; }
+
+/* ── CONCEPT CARDS ───────────────────────────────────────── */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.concept-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px;
+  transition: background var(--t), border-color var(--t);
+}
+.concept-card:hover { border-color: var(--gold); }
+.concept-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+.concept-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.concept-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* ── CALLOUTS ────────────────────────────────────────────── */
+.callout {
+  border-radius: 8px; padding: 14px 16px;
+  font-size: 13px; line-height: 1.65;
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-bottom: 12px;
+  transition: background var(--t);
+}
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { flex: 1; }
+.callout-title { font-weight: 700; margin-bottom: 3px; font-size: 12px; }
+.callout-ok   { background: var(--ok-bg);   color: var(--ok);   border-left: 3px solid #2D8A52; }
+.callout-info { background: var(--info-bg); color: var(--info); border-left: 3px solid #3A7FD4; }
+.callout-warn { background: var(--warn-bg); color: var(--warn); border-left: 3px solid #C89B3C; }
+.callout-gold {
+  background: var(--gold-pale); color: var(--warn);
+  border-left: 3px solid var(--gold);
+}
+[data-theme="dark"] .callout-gold { color: var(--gold-light); }
+
+/* ── CODE ────────────────────────────────────────────────── */
+.code-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.code-block {
+  background: var(--code-bg);
+  border-radius: 8px; padding: 16px 18px;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px; line-height: 1.7;
+  color: var(--code-text);
+  overflow-x: auto; white-space: pre;
+  margin-bottom: 16px;
+}
+.code-block .c  { color: #6A8FAF; }
+.code-block .k  { color: var(--gold-light); }
+.code-block .s  { color: #98D982; }
+.code-block .n  { color: #7EC8E3; }
+.code-block .p  { color: #E8EDF8; }
+
+/* ── LINKS ───────────────────────────────────────────────── */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px; margin-top: 16px;
+}
+.link-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  text-decoration: none;
+  display: flex; align-items: center; gap: 12px;
+  transition: background var(--t), border-color .15s, transform .15s;
+}
+.link-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.link-icon { font-size: 20px; flex-shrink: 0; }
+.link-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.link-url   { font-size: 11px; color: var(--gold); }
+
+/* ── CHECK LIST ──────────────────────────────────────────── */
+.check-list { display: flex; flex-direction: column; gap: 8px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 13px; color: var(--text);
+  transition: background var(--t), border-color var(--t);
+}
+.check-mark {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--gold-pale); color: var(--warn);
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+[data-theme="dark"] .check-mark { background: rgba(200,155,60,0.15); color: var(--gold-light); }
+.check-text { flex: 1; line-height: 1.5; }
+.check-bold { font-weight: 700; }
+.check-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── TABLA COMPARATIVA ───────────────────────────────────── */
+.compare-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; margin-bottom: 20px;
+}
+.compare-table th {
+  background: var(--navy); color: var(--gold-light);
+  font-weight: 700; padding: 10px 14px;
+  text-align: left; font-size: 11px;
+  letter-spacing: .5px;
+}
+.compare-table td {
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text); vertical-align: top; line-height: 1.45;
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table tr:nth-child(even) td { background: var(--bg); }
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.site-footer {
+  background: var(--navy); padding: 18px 28px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; flex-wrap: wrap;
+}
+.footer-badge {
+  background: var(--gold); color: var(--navy);
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+}
+.footer-left { display: flex; align-items: center; gap: 10px; }
+.footer-copy { font-size: 11px; color: rgba(255,255,255,0.3); }
+.footer-copy a { color: var(--gold); text-decoration: none; }
+.footer-right { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+@media (max-width: 560px) {
+  .hero { padding: 52px 20px 44px; }
+  .hero-title { font-size: 26px; }
+  .page { padding: 36px 18px 60px; }
+  .site-footer { justify-content: center; text-align: center; }
+  .compare-table { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<div class="toggle-wrap">
+  <button class="theme-btn" id="themeBtn">
+    <span class="t-icon">◐</span>
+    <span class="t-label">Oscuro</span>
+  </button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      GeoServer 3 · ARTECLAB · Material de repaso
+    </div>
+    <h1 class="hero-title">Fundamentos<br><em>antes de empezar</em></h1>
+    <p class="hero-desc">
+      Conceptos esenciales de Linux, Java, servidores web y estándares OGC
+      para llegar preparado al curso GeoServer 3. Revisa este material el fin de semana anterior.
+    </p>
+    <div class="hero-pills">
+      <span class="hero-pill">🐧 Linux básico</span>
+      <span class="hero-pill">☕ Java esencial</span>
+      <span class="hero-pill">🌐 Estándares OGC</span>
+      <span class="hero-pill">⏱ 2–3 horas de repaso</span>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENIDO -->
+<div class="page">
+
+  <!-- 1. LINUX ESENCIAL ────────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 1</span>
+    <h2 class="section-title">Linux — comandos básicos</h2>
+    <p class="section-desc">
+      GeoServer corre en un servidor Linux. No necesitas ser administrador de sistemas,
+      pero sí moverte con soltura en la terminal. Estos comandos aparecen en las primeras dos clases.
+    </p>
+
+    <div class="code-label">Comandos que usarás en el curso</div>
+    <div class="code-block"><span class="c"># Navegar el sistema de archivos</span>
+<span class="k">pwd</span>                        <span class="c"># mostrar dónde estás</span>
+<span class="k">ls</span> -la                     <span class="c"># listar archivos con detalles</span>
+<span class="k">cd</span> /opt/tomcat/webapps     <span class="c"># ir a una carpeta</span>
+<span class="k">cd</span> ..                      <span class="c"># subir un nivel</span>
+
+<span class="c"># Trabajar con archivos</span>
+<span class="k">cp</span>  archivo.war /destino/  <span class="c"># copiar</span>
+<span class="k">mv</span>  archivo.war /destino/  <span class="c"># mover o renombrar</span>
+<span class="k">rm</span>  archivo.war            <span class="c"># eliminar</span>
+<span class="k">nano</span> /etc/archivo.conf     <span class="c"># editar un archivo de texto</span>
+
+<span class="c"># Permisos y propietario</span>
+<span class="k">chmod</span> +x script.sh         <span class="c"># hacer ejecutable</span>
+<span class="k">chown</span> tomcat:tomcat /opt/geoserver/data_dir
+
+<span class="c"># Servicios con systemctl</span>
+<span class="k">systemctl</span> start  tomcat    <span class="c"># iniciar</span>
+<span class="k">systemctl</span> stop   tomcat    <span class="c"># detener</span>
+<span class="k">systemctl</span> status tomcat    <span class="c"># ver estado</span>
+<span class="k">systemctl</span> enable tomcat    <span class="c"># iniciar al boot</span>
+
+<span class="c"># Ver logs en tiempo real</span>
+<span class="k">tail</span> -f /opt/tomcat/logs/catalina.out
+
+<span class="c"># Descargar archivos</span>
+<span class="k">wget</span>  https://url/geoserver.war
+<span class="k">curl</span> -O https://url/geoserver.war</div>
+
+    <div class="callout callout-gold">
+      <span class="callout-icon">⭐</span>
+      <div class="callout-body">
+        <div class="callout-title">El comando más útil del curso</div>
+        <code>tail -f /opt/tomcat/logs/catalina.out</code> — muestra los logs de Tomcat en tiempo real.
+        Cuando algo falla, este es el primer lugar donde mirar.
+      </div>
+    </div>
+
+    <div class="links-grid">
+      <a class="link-card" href="https://ubuntu.com/tutorials/command-line-for-beginners" target="_blank">
+        <span class="link-icon">🐧</span>
+        <div><div class="link-title">Terminal para principiantes</div><div class="link-url">ubuntu.com/tutorials</div></div>
+      </a>
+      <a class="link-card" href="https://www.digitalocean.com/community/tutorials/linux-commands" target="_blank">
+        <span class="link-icon">📖</span>
+        <div><div class="link-title">56 comandos Linux esenciales</div><div class="link-url">digitalocean.com/community</div></div>
+      </a>
+      <a class="link-card" href="https://linuxcommand.org/lc3_learning_the_shell.php" target="_blank">
+        <span class="link-icon">🖥️</span>
+        <div><div class="link-title">Aprender el shell Linux</div><div class="link-url">linuxcommand.org</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 2. JAVA Y TOMCAT ─────────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 2</span>
+    <h2 class="section-title">Java y Tomcat — lo que necesitas saber</h2>
+    <p class="section-desc">
+      GeoServer es una aplicación Java que corre dentro de Tomcat.
+      No necesitas programar en Java, pero sí entender cómo se instala,
+      configura y se le cambian los parámetros de memoria.
+    </p>
+
+    <div class="callout callout-warn" style="margin-bottom:18px;">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <div class="callout-title">Cambio crítico en GeoServer 3</div>
+        GeoServer 3 requiere <strong>Java 17</strong> (mínimo) y <strong>Tomcat 11</strong>.
+        Tomcat 9 ya no funciona — migró de <code>javax.servlet</code> a <code>jakarta.servlet</code>.
+        Si instalas la versión equivocada, GeoServer no arranca.
+      </div>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <span class="concept-icon">☕</span>
+        <div class="concept-name">JDK vs JRE</div>
+        <div class="concept-desc"><strong>JRE:</strong> solo ejecuta Java. <strong>JDK:</strong> ejecuta y compila. Necesitamos el <strong>JDK 17</strong>. En Ubuntu: <code>apt install openjdk-17-jdk</code></div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🐈</span>
+        <div class="concept-name">Apache Tomcat</div>
+        <div class="concept-desc">Servidor web Java (contenedor de servlets). GeoServer se despliega como un archivo WAR dentro de la carpeta <code>webapps/</code>.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">📦</span>
+        <div class="concept-name">Archivo WAR</div>
+        <div class="concept-desc">Web Application Archive — un ZIP con toda la aplicación Java lista para desplegar. Copiar <code>geoserver.war</code> a <code>webapps/</code> es suficiente para instalarlo.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🧠</span>
+        <div class="concept-name">Memoria Java (Heap)</div>
+        <div class="concept-desc">GeoServer necesita memoria configurada con <code>JAVA_OPTS="-Xms512m -Xmx2g"</code>. Sin esto, se quedará sin memoria con datasets grandes.</div>
+      </div>
+    </div>
+
+    <div class="code-label">Verificar Java y Tomcat después de instalar</div>
+    <div class="code-block"><span class="c"># Verificar versión de Java instalada</span>
+<span class="k">java</span> -version
+<span class="c"># Debe mostrar: openjdk version "17..."</span>
+
+<span class="c"># Verificar variable JAVA_HOME</span>
+<span class="k">echo</span> $JAVA_HOME
+<span class="c"># Debe mostrar: /usr/lib/jvm/java-17-openjdk-amd64</span>
+
+<span class="c"># Estructura de Tomcat (lo que verás en el curso)</span>
+/opt/tomcat/
+  ├── bin/          <span class="c"># startup.sh, shutdown.sh</span>
+  ├── conf/         <span class="c"># server.xml, tomcat-users.xml</span>
+  ├── webapps/      <span class="c"># aquí va geoserver.war</span>
+  └── logs/         <span class="c"># catalina.out (los logs)</span></div>
+
+    <div class="links-grid">
+      <a class="link-card" href="https://adoptium.net" target="_blank">
+        <span class="link-icon">☕</span>
+        <div><div class="link-title">Descargar Java 17 (Adoptium)</div><div class="link-url">adoptium.net</div></div>
+      </a>
+      <a class="link-card" href="https://tomcat.apache.org/download-11.cgi" target="_blank">
+        <span class="link-icon">🐈</span>
+        <div><div class="link-title">Descargar Tomcat 11</div><div class="link-url">tomcat.apache.org</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 3. ESTÁNDARES OGC ────────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 3</span>
+    <h2 class="section-title">Estándares OGC — el lenguaje de los mapas web</h2>
+    <p class="section-desc">
+      OGC (Open Geospatial Consortium) define los protocolos que permiten que
+      cualquier cliente GIS consuma datos de cualquier servidor. GeoServer los implementa todos.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Servicio</th>
+          <th>Nombre completo</th>
+          <th>¿Qué devuelve?</th>
+          <th>Cuándo usarlo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>WMS</strong></td>
+          <td>Web Map Service</td>
+          <td>Imagen PNG/JPEG del mapa renderizado</td>
+          <td>Visualización rápida en mapas web</td>
+        </tr>
+        <tr>
+          <td><strong>WFS</strong></td>
+          <td>Web Feature Service</td>
+          <td>Datos vectoriales en GeoJSON o GML</td>
+          <td>Descargar y analizar datos en el cliente</td>
+        </tr>
+        <tr>
+          <td><strong>WMTS</strong></td>
+          <td>Web Map Tile Service</td>
+          <td>Teselas pre-generadas en caché</td>
+          <td>Mapas base de alta performance</td>
+        </tr>
+        <tr>
+          <td><strong>WCS</strong></td>
+          <td>Web Coverage Service</td>
+          <td>Datos raster crudos (DEM, satélite)</td>
+          <td>Análisis de datos raster</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">🔗</span>
+      <div class="callout-body">
+        <div class="callout-title">Una petición WMS desde el navegador</div>
+        Prueba esta URL (con tu GeoServer activo) para ver cómo funciona un GetCapabilities:
+        <code style="display:block;margin-top:6px;font-size:11px;word-break:break-all;">
+          http://localhost:8080/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+        </code>
+      </div>
+    </div>
+
+    <div class="code-label" style="margin-top:16px;">Anatomía de una petición WMS GetMap</div>
+    <div class="code-block"><span class="n">http://localhost:8080/geoserver/wms?</span>
+  <span class="k">SERVICE</span>=<span class="s">WMS</span>              <span class="c"># protocolo</span>
+  &<span class="k">VERSION</span>=<span class="s">1.3.0</span>           <span class="c"># versión del estándar</span>
+  &<span class="k">REQUEST</span>=<span class="s">GetMap</span>           <span class="c"># qué pedir</span>
+  &<span class="k">LAYERS</span>=<span class="s">bolivia:departamentos</span>  <span class="c"># workspace:capa</span>
+  &<span class="k">CRS</span>=<span class="s">EPSG:4326</span>             <span class="c"># sistema de coordenadas</span>
+  &<span class="k">BBOX</span>=<span class="s">-22.9,-69.6,-9.7,-57.5</span>  <span class="c"># área del mapa</span>
+  &<span class="k">WIDTH</span>=<span class="s">800</span>&<span class="k">HEIGHT</span>=<span class="s">600</span>     <span class="c"># tamaño de la imagen</span>
+  &<span class="k">FORMAT</span>=<span class="s">image/png</span>          <span class="c"># formato de salida</span>
+  &<span class="k">TRANSPARENT</span>=<span class="s">true</span>         <span class="c"># fondo transparente</span></div>
+
+    <div class="links-grid">
+      <a class="link-card" href="https://www.ogc.org/standards/wms" target="_blank">
+        <span class="link-icon">🌐</span>
+        <div><div class="link-title">Estándar WMS oficial</div><div class="link-url">ogc.org/standards/wms</div></div>
+      </a>
+      <a class="link-card" href="https://www.opengeospatial.org/standards/wfs" target="_blank">
+        <span class="link-icon">📦</span>
+        <div><div class="link-title">Estándar WFS oficial</div><div class="link-url">opengeospatial.org/standards/wfs</div></div>
+      </a>
+      <a class="link-card" href="https://epsg.io" target="_blank">
+        <span class="link-icon">🔢</span>
+        <div><div class="link-title">EPSG — sistemas de coordenadas</div><div class="link-url">epsg.io</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 4. ARQUITECTURA GS ───────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 4</span>
+    <h2 class="section-title">Arquitectura de GeoServer — Workspace · Store · Layer</h2>
+    <p class="section-desc">
+      Todo en GeoServer sigue esta jerarquía. Entenderla desde el principio
+      evita la confusión de las primeras clases.
+    </p>
+
+    <div class="check-list">
+      <div class="check-item">
+        <div class="check-mark">📁</div>
+        <div class="check-text">
+          <div class="check-bold">Workspace — el contenedor del proyecto</div>
+          <div class="check-sub">Como una carpeta. Agrupa stores y capas relacionadas. Aparece en la URL: <code>/geoserver/bolivia/wms</code></div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">🗄️</div>
+        <div class="check-text">
+          <div class="check-bold">Store — la fuente de datos</div>
+          <div class="check-sub">Puede ser un archivo (Shapefile, GeoPackage, GeoTIFF) o una base de datos (PostGIS). Un workspace puede tener múltiples stores.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">🗺️</div>
+        <div class="check-text">
+          <div class="check-bold">Layer — la capa publicable</div>
+          <div class="check-sub">Lo que el cliente final consume. Una capa tiene un estilo SLD asignado. Los clientes piden capas por nombre: <code>bolivia:departamentos</code></div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">🎨</div>
+        <div class="check-text">
+          <div class="check-bold">Style (SLD) — el estilo de la capa</div>
+          <div class="check-sub">Styled Layer Descriptor — XML que define colores, bordes y etiquetas. GeoServer también acepta CSS más legible. Clase 5 del curso.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-gold" style="margin-top:16px;">
+      <span class="callout-icon">⭐</span>
+      <div class="callout-body">
+        <div class="callout-title">La URL lo dice todo</div>
+        <code>http://servidor:8080/geoserver/<strong>bolivia</strong>/wms?LAYERS=<strong>bolivia:departamentos</strong></code><br>
+        <span style="font-size:11px;margin-top:4px;display:block;">workspace = bolivia · capa = departamentos</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. CONCEPTOS GIS ─────────────────────────────────── -->
+  <section class="section">
+    <span class="section-label">Bloque 5</span>
+    <h2 class="section-title">Conceptos GIS fundamentales</h2>
+    <p class="section-desc">
+      GeoServer trabaja con datos geoespaciales. Estos términos aparecen desde la primera clase.
+    </p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <span class="concept-icon">🔢</span>
+        <div class="concept-name">EPSG:4326 — WGS 84</div>
+        <div class="concept-desc">El sistema de coordenadas geográficas estándar. Latitud y longitud en grados decimales. La Paz: lat −16.50, lon −68.15.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🗺️</span>
+        <div class="concept-name">EPSG:3857 — Web Mercator</div>
+        <div class="concept-desc">Sistema de proyección que usa Google Maps, OSM y la mayoría de mapas web. GeoServer puede reproyectar sobre la marcha.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">📐</span>
+        <div class="concept-name">Vectorial vs Raster</div>
+        <div class="concept-desc"><strong>Vectorial:</strong> puntos, líneas y polígonos con atributos. Shapefile, GeoPackage, PostGIS. <strong>Raster:</strong> cuadrícula de píxeles. GeoTIFF, DEM.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">📦</span>
+        <div class="concept-name">Shapefile vs GeoPackage</div>
+        <div class="concept-desc"><strong>Shapefile:</strong> formato antiguo, mínimo 4 archivos (.shp, .dbf, .shx, .prj). <strong>GeoPackage:</strong> un solo archivo .gpkg, recomendado para el curso.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">🔍</span>
+        <div class="concept-name">BBox (Bounding Box)</div>
+        <div class="concept-desc">El rectángulo que envuelve una capa o una zona del mapa. Formato: minLon, minLat, maxLon, maxLat. Se usa en peticiones WMS y WFS.</div>
+      </div>
+      <div class="concept-card">
+        <span class="concept-icon">⚡</span>
+        <div class="concept-name">GeoWebCache</div>
+        <div class="concept-desc">Cache de teselas integrado en GeoServer. Pre-genera y almacena las imágenes WMS para servirlas mucho más rápido como WMTS.</div>
+      </div>
+    </div>
+
+    <div class="links-grid">
+      <a class="link-card" href="https://geoserver.org/download/" target="_blank">
+        <span class="link-icon">⬇️</span>
+        <div><div class="link-title">Descargar GeoServer 3</div><div class="link-url">geoserver.org/download</div></div>
+      </a>
+      <a class="link-card" href="https://docs.geoserver.org" target="_blank">
+        <span class="link-icon">📖</span>
+        <div><div class="link-title">Documentación oficial</div><div class="link-url">docs.geoserver.org</div></div>
+      </a>
+      <a class="link-card" href="https://qgis.org/download/" target="_blank">
+        <span class="link-icon">🗺️</span>
+        <div><div class="link-title">Descargar QGIS (cliente de prueba)</div><div class="link-url">qgis.org/download</div></div>
+      </a>
+      <a class="link-card" href="https://postgis.net/documentation/getting_started/" target="_blank">
+        <span class="link-icon">🗄️</span>
+        <div><div class="link-title">Primeros pasos con PostGIS</div><div class="link-url">postgis.net/documentation</div></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 6. CHECKLIST PREVIO ──────────────────────────────── -->
+  <section class="section" style="margin-bottom:0;">
+    <span class="section-label">Antes de la Clase 1</span>
+    <h2 class="section-title">Lista de verificación</h2>
+    <p class="section-desc">Confirma que tienes todo listo antes de la primera sesión.</p>
+
+    <div class="check-list">
+      <div class="check-item">
+        <div class="check-mark">1</div>
+        <div class="check-text">
+          <div class="check-bold">Servidor Linux accesible (Ubuntu 24.04 o Debian 13 recomendado)</div>
+          <div class="check-sub">VirtualBox local o servidor en la nube. Mínimo 2GB RAM, 20GB disco.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">2</div>
+        <div class="check-text">
+          <div class="check-bold">Java 17 JDK instalado y JAVA_HOME configurado</div>
+          <div class="check-sub"><code>java -version</code> debe mostrar 17.x. Sin esto, GeoServer 3 no arranca.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">3</div>
+        <div class="check-text">
+          <div class="check-bold">Apache Tomcat 11 descargado</div>
+          <div class="check-sub">De tomcat.apache.org. No usar Tomcat 9 — incompatible con GeoServer 3.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">4</div>
+        <div class="check-text">
+          <div class="check-bold">Archivo geoserver-3.x.x-war.zip descargado</div>
+          <div class="check-sub">De geoserver.org. El instructor indicará la versión exacta a usar.</div>
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-mark">5</div>
+        <div class="check-text">
+          <div class="check-bold">QGIS instalado en tu computadora local</div>
+          <div class="check-sub">Lo usaremos para probar las capas publicadas en GeoServer desde el cliente.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-ok" style="margin-top:18px;">
+      <span class="callout-icon">✓</span>
+      <div class="callout-body">
+        <div class="callout-title">Prueba de verificación</div>
+        Si puedes abrir el navegador en tu servidor y ver
+        <code>http://localhost:8080</code> mostrando la página de bienvenida de Tomcat,
+        estás listo para la Clase 2 donde instalaremos GeoServer.
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-left">
+    <span class="footer-badge">ARTECLAB</span>
+    <span class="footer-copy">
+      © <span class="auto-year"></span>
+      <a href="https://danielquisbert.com" target="_blank"> Daniel Quisbert</a>
+      · Material de repaso — GeoServer 3
+    </span>
+  </div>
+  <div class="footer-right">geoserver-pro.danielquisbert.com · <span class="auto-year"></span></div>
+</footer>
+
+<script>
+(function () {
+  var KEY = 'arteclab-theme';
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(KEY, t);
+    var btn = document.getElementById('themeBtn');
+    btn.querySelector('.t-icon').textContent  = t === 'dark' ? '☀' : '◐';
+    btn.querySelector('.t-label').textContent = t === 'dark' ? 'Claro' : 'Oscuro';
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var saved = localStorage.getItem(KEY);
+    var dark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (dark ? 'dark' : 'light'));
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    var y = new Date().getFullYear();
+    document.querySelectorAll('.auto-year').forEach(function(el){ el.textContent = y; });
+  });
+})();
+</script>
+</body>
+</html>
