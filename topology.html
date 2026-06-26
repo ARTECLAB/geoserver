@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 6 — PostGIS + GeoServer · ARTECLAB</title>
+<link rel="stylesheet" href="assets/slides.css"></head>
+<body><div class="deck">
+<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 6</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 13</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
+<div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+<div class="slides-wrap">
+
+    <div class="slide slide-cover"><div class="cover-grid"></div>
+    <div class="cover-tag"><span class="cover-dot"></span> Módulo 5 · Clase 6 · <span class="auto-year"></span></div>
+    <h1 class="cover-title">PostGIS + GeoServer:<br><em>Publicación desde BD</em></h1>
+    <p class="cover-sub">La combinación más potente para servicios geoespaciales en producción</p>
+    <div class="cover-pills"><span class="cover-pill">⏱ 2 horas</span><span class="cover-pill">🗄️ PostgreSQL 16</span><span class="cover-pill">👨‍💻 Daniel Quisbert</span></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Al finalizar esta clase</div><div class="slide-title">¿Qué vamos a lograr hoy?</div><div class="slide-body"><div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Preparar una base de datos PostGIS para GeoServer</div><div class="step-desc">CREATE EXTENSION postgis, usuario de solo lectura, índices espaciales.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Importar datos geoespaciales con ogr2ogr a PostgreSQL</div><div class="step-desc">Shapefile y GeoPackage directo a PostGIS en un comando.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Crear un Datastore PostGIS en GeoServer</div><div class="step-desc">Conexión JDBC, Connection Pool y publicación de tablas.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Publicar vistas SQL como capas WMS</div><div class="step-desc">El poder real de PostGIS: datos calculados servidos como mapas.</div></div></div>
+    </div><div class="instructor-strip"><div class="is-avatar">DQ</div><div><div class="is-name">Daniel Quisbert</div><div class="is-role">ARTECLAB · danielquisbert.com</div></div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">¿Por qué PostGIS?</div><div class="slide-title">Archivo vs Base de datos — cuándo usar cada uno</div><div class="slide-body">
+    <table class="compare-table"><thead><tr><th></th><th>GeoPackage / SHP</th><th style="color:var(--gold-light)">PostGIS ✓</th></tr></thead><tbody>
+    <tr><td><strong>Usuarios simultáneos</strong></td><td>1 (bloqueos de escritura)</td><td>Miles</td></tr>
+    <tr><td><strong>Edición en tiempo real</strong></td><td>Riesgoso</td><td>Transaccional (ACID)</td></tr>
+    <tr><td><strong>Consultas espaciales</strong></td><td>Limitadas</td><td>ST_Intersects, ST_Buffer, etc.</td></tr>
+    <tr><td><strong>Datos calculados</strong></td><td>No</td><td>Vistas SQL con geometría</td></tr>
+    <tr><td><strong>Escala</strong></td><td>Hasta ~500MB práctico</td><td>Terabytes con índices</td></tr>
+    <tr><td><strong>WFS Transaccional</strong></td><td>No</td><td>Edición desde QGIS via GeoServer</td></tr>
+    </tbody></table>
+    </div></div>
+
+    <div class="slide slide-section"><div class="section-num">Paso 1 de 4</div><div class="section-title">Preparar PostGIS</div><div class="section-desc">Base de datos + extensión espacial + usuario seguro</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">SQL esencial</div><div class="slide-title">Crear la base de datos espacial</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="code-label">Crear BD y activar PostGIS</div>
+    <div class="code-block"><span class="c">-- Crear base de datos</span>
+CREATE DATABASE geobolivia
+  TEMPLATE template0
+  ENCODING 'UTF8';
+
+<span class="c">-- Conectar y activar PostGIS</span>
+\c geobolivia
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+
+<span class="c">-- Verificar</span>
+SELECT PostGIS_Version();
+<span class="c">-- → 3.4 USE_GEOS=1 USE_PROJ=1</span>
+
+<span class="c">-- Usuario de solo lectura para GeoServer</span>
+CREATE USER geoserver_ro WITH PASSWORD 'gs_readonly!';
+GRANT CONNECT ON DATABASE geobolivia TO geoserver_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO geoserver_ro;</div></div>
+    <div>
+    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🔒</span><div class="callout-body"><div class="callout-title">Principio de mínimo privilegio</div>GeoServer solo necesita SELECT para servir mapas. Si las credenciales se filtran, el atacante no puede modificar datos.</div></div>
+    <div class="callout callout-info"><span class="callout-icon">📌</span><div class="callout-body">El índice espacial GIST es el que hace rápidas las consultas espaciales: <code>CREATE INDEX idx ON tabla USING GIST(geom);</code></div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-section"><div class="section-num">Paso 2 de 4</div><div class="section-title">Importar datos<br>a PostGIS</div><div class="section-desc">ogr2ogr: el camino más rápido</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Importación masiva</div><div class="slide-title">ogr2ogr → PostGIS</div><div class="slide-body">
+    <div class="code-label">Importar GeoPackage completo a PostGIS</div>
+    <div class="code-block"><span class="c"># Importar cada capa del GeoPackage a PostGIS</span>
+<span class="k">ogr2ogr</span> -f <span class="s">PostgreSQL</span> \
+  PG:<span class="s">"host=localhost dbname=geobolivia user=postgres"</span> \
+  datos.gpkg \
+  -nln <span class="n">municipios</span> \
+  -t_srs <span class="n">EPSG:4326</span> \
+  -overwrite
+
+<span class="c"># Crear índice espacial</span>
+psql -d geobolivia -c \
+  "CREATE INDEX idx_mun_geom ON municipios USING GIST(wkb_geometry);"
+
+<span class="c"># Verificar en psql</span>
+psql -d geobolivia -c "SELECT COUNT(*) FROM municipios;"</div>
+    <div class="callout callout-ok" style="margin-top:12px;"><span class="callout-icon">✓</span><div class="callout-body"><code>-overwrite</code> elimina y recrea la tabla. <code>-append</code> agrega filas a una tabla existente. Usa overwrite para carga inicial y append para actualizaciones parciales.</div></div>
+    </div></div>
+
+    <div class="slide slide-section"><div class="section-num">Paso 3 de 4</div><div class="section-title">Datastore PostGIS<br>en GeoServer</div><div class="section-desc">Conectar GeoServer a PostgreSQL</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Configuración</div><div class="slide-title">Parámetros del Datastore PostGIS</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="kv-list">
+    <div class="kv"><span class="kv-key">Host</span><span class="kv-val">localhost (o IP del servidor PostgreSQL)</span></div>
+    <div class="kv"><span class="kv-key">Puerto</span><span class="kv-val">5432 (por defecto)</span></div>
+    <div class="kv"><span class="kv-key">Base de datos</span><span class="kv-val">geobolivia</span></div>
+    <div class="kv"><span class="kv-key">Schema</span><span class="kv-val">public (donde están las tablas)</span></div>
+    <div class="kv"><span class="kv-key">Usuario</span><span class="kv-val">geoserver_ro (solo lectura)</span></div>
+    <div class="kv"><span class="kv-key">Contraseña</span><span class="kv-val">gs_readonly!</span></div>
+    <div class="kv"><span class="kv-key">Min conexiones</span><span class="kv-val">1 (Connection Pool mínimo)</span></div>
+    <div class="kv"><span class="kv-key">Max conexiones</span><span class="kv-val">10 (ajustar según carga)</span></div>
+    </div></div>
+    <div>
+    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">⚡</span><div class="callout-body"><div class="callout-title">Connection Pool</div>GeoServer mantiene conexiones abiertas a PostgreSQL. Evita el costo de crear una nueva conexión por cada petición WMS.</div></div>
+    <div class="callout callout-warn"><span class="callout-icon">⚠️</span><div class="callout-body">Después de guardar el Store, GeoServer lista automáticamente todas las tablas y vistas de ese schema listas para publicar.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-section"><div class="section-num">Paso 4 de 4</div><div class="section-title">Vistas SQL<br>como capas WMS</div><div class="section-desc">El poder real: datos calculados servidos como mapas</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Vista SQL</div><div class="slide-title">Municipios con densidad poblacional — vista para GeoServer</div><div class="slide-body">
+    <div class="code-label">Crear vista SQL en PostgreSQL</div>
+    <div class="code-block"><span class="c">-- Vista: municipios + cálculo de densidad</span>
+CREATE OR REPLACE VIEW v_municipios_densidad AS
+SELECT
+  m.gid,
+  m.nombre_municipio,
+  m.departamento,
+  m.superficie_km2,
+  p.poblacion_2024,
+  ROUND(p.poblacion_2024::numeric /
+        NULLIF(m.superficie_km2, 0), 1)
+    AS hab_por_km2,
+  m.wkb_geometry AS geom
+FROM municipios m
+LEFT JOIN censo_2024 p
+  ON m.cod_ine = p.cod_municipio;
+
+<span class="c">-- GeoServer la ve y publica igual que una tabla física</span></div>
+    <div class="callout callout-ok" style="margin-top:12px;"><span class="callout-icon">✓</span><div class="callout-body">Ahora publicas <code>v_municipios_densidad</code> desde GeoServer y creas un estilo SLD graduado por <code>hab_por_km2</code>. Los datos del censo se calculan en el servidor, no en el cliente.</div></div>
+    </div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Resumen</div><div class="slide-title">Lo que aprendiste hoy</div><div class="slide-body">
+    <div class="two-col">
+    <ul class="slide-list">
+    <li>PostGIS supera a los archivos en escala, usuarios simultáneos y capacidad de consulta</li>
+    <li><code>CREATE EXTENSION postgis</code> activa las capacidades espaciales en PostgreSQL</li>
+    <li>El usuario de solo lectura para GeoServer es una buena práctica de seguridad</li>
+    <li>ogr2ogr importa GeoPackages y Shapefiles directamente a PostGIS con <code>-f PostgreSQL</code></li>
+    <li>El índice GIST hace que las consultas espaciales sean eficientes</li>
+    <li>GeoServer publica vistas SQL exactamente igual que tablas físicas</li>
+    </ul>
+    <div><div class="callout callout-info"><span class="callout-icon">🔒</span><div class="callout-body"><div class="callout-title">Próxima clase</div>Servicios OGC en detalle, filtros CQL y seguridad. Aprenderemos a restringir el acceso por workspace, capa y usuario.</div></div></div>
+    </div></div></div>
+
+    <div class="slide slide-cover"><div class="cover-grid"></div>
+    <div class="cover-tag"><span class="cover-dot"></span> Fin de la Clase 6</div>
+    <h1 class="cover-title">PostGIS y GeoServer<br><em>trabajan juntos.</em></h1>
+    <p class="cover-sub">Próxima clase: WMS, WFS, WMTS, filtros CQL y seguridad.</p>
+    <div style="max-width:460px;width:100%;position:relative;">
+    <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario — Clase 6: PostGIS</div><div class="quiz-cta-sub">12 preguntas · 2 intentos</div></div><a href="../questions/topology.html" target="_blank">Ir al cuestionario →</a></div></div>
+    <div class="cover-pills" style="margin-top:20px;"><span class="cover-pill">🗓 Próxima: OGC + Seguridad</span></div>
+    </div>
+
+</div>
+<div class="navbar"><button class="nav-btn" id="btnPrev">← Anterior</button>
+<div class="nav-dots">
+      <button class="nav-dot" title="Slide 1"></button>
+      <button class="nav-dot" title="Slide 2"></button>
+      <button class="nav-dot" title="Slide 3"></button>
+      <button class="nav-dot" title="Slide 4"></button>
+      <button class="nav-dot" title="Slide 5"></button>
+      <button class="nav-dot" title="Slide 6"></button>
+      <button class="nav-dot" title="Slide 7"></button>
+      <button class="nav-dot" title="Slide 8"></button>
+      <button class="nav-dot" title="Slide 9"></button>
+      <button class="nav-dot" title="Slide 10"></button>
+      <button class="nav-dot" title="Slide 11"></button>
+      <button class="nav-dot" title="Slide 12"></button>
+      <button class="nav-dot" title="Slide 13"></button>
+    </div>
+<button class="nav-btn" id="btnNext">Siguiente →</button></div>
+</div><script src="assets/slides.js"></script></body></html>

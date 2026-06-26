@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · Clase 3 · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area"><span class="logo-badge">ARTECLAB</span><span class="logo-name">GeoServer 3</span></div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema"><span class="toggle-icon" aria-hidden="true">◐</span><span class="toggle-label">Oscuro</span></button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/><path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/></svg>Módulo 2 · Clase 3</span>
+      <h1 class="course-title">Docker y Conversión<br>de Datos Geoespaciales</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Primer intento correcto: puntaje completo. Segundo intento: la mitad. Al finalizar verás tu nota detallada.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+  <div id="quizContainer"></div>
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>Ver mi resultado final →</button>
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle"><span class="result-score-num" id="resFinalScore">0</span><span class="result-score-of">/ 100</span></div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc" id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct"><span class="result-stat-num" id="resCorrect">0</span><span class="result-stat-label">Correctas a la primera</span></div>
+        <div class="result-stat rs-second"><span class="result-stat-num" id="resSecond">0</span><span class="result-stat-label">Correctas en 2.º intento</span></div>
+        <div class="result-stat rs-wrong"><span class="result-stat-num" id="resWrong">0</span><span class="result-stat-label">Sin responder bien</span></div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+<footer class="site-footer"><a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a> &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0</footer>
+<script>
+window.QUIZ_QUESTIONS = [
+  {id:1,type:"Opción múltiple",points:8,text:"¿Cuál es la diferencia entre una imagen Docker y un contenedor Docker?",options:["Son lo mismo, los términos son intercambiables","La imagen es la plantilla estática (como un instalador); el contenedor es la instancia en ejecución","El contenedor se descarga de internet; la imagen se ejecuta localmente","La imagen contiene los datos; el contenedor contiene el código"],correct:1,hint:"Piensa en la analogía: una imagen es como un molde de pastel, y el contenedor es el pastel ya horneado.",explanation:"La imagen Docker es una plantilla de solo lectura (como un instalador o molde). A partir de una misma imagen puedes crear múltiples contenedores, que son instancias en ejecución con su propio sistema de archivos mutable. Puedes ejecutar varios contenedores de GeoServer a partir de la misma imagen."},
+  {id:2,type:"Verdadero / Falso",points:8,text:"Los datos almacenados dentro de un contenedor Docker se pierden cuando el contenedor se detiene o elimina, a menos que se usen volúmenes.",options:["Verdadero — sin volúmenes, el sistema de archivos del contenedor es efímero","Falso — los datos dentro del contenedor persisten aunque se detenga"],correct:0,hint:"El sistema de archivos de un contenedor Docker está ligado al ciclo de vida del contenedor. ¿Qué pasa cuando ese ciclo termina?",explanation:"VERDADERO. El sistema de archivos de un contenedor es efímero: cuando el contenedor se elimina, los datos dentro desaparecen. Para persistir datos (como el GEOSERVER_DATA_DIR) se usan volúmenes Docker, que son directorios del host montados dentro del contenedor."},
+  {id:3,type:"Opción múltiple",points:8,text:"¿Qué ventaja principal tiene GeoPackage sobre Shapefile para publicar datos en GeoServer?",options:["GeoPackage es más antiguo y por eso más compatible","GeoPackage es un único archivo SQLite que soporta múltiples capas, nombres largos y caracteres especiales","GeoPackage solo funciona con GeoServer, no con otros SIG","Shapefile tiene mayor rendimiento en consultas espaciales"],correct:1,hint:"Piensa en las limitaciones conocidas del Shapefile: longitud de nombres de campo, número de archivos, caracteres especiales...",explanation:"GeoPackage (GPKG) es un formato moderno basado en SQLite que resuelve las principales limitaciones del Shapefile: permite nombres de campo de hasta 255 caracteres (SHP limita a 10), almacena múltiples capas en un solo archivo, soporta datos raster, y no tiene límite de 2 GB por archivo."},
+  {id:4,type:"Opción múltiple",points:8,text:"¿Qué hace el flag -t_srs EPSG:4326 en un comando ogr2ogr?",options:["Filtra solo los registros con código EPSG 4326 en los atributos","Reproyecta los datos de salida al sistema de coordenadas EPSG:4326 (WGS84)","Verifica que los datos de entrada estén en EPSG:4326","Elimina la información de proyección del archivo de salida"],correct:1,hint:"'t_srs' = target spatial reference system. ¿A qué sistema de coordenadas se transformarán los datos?",explanation:"-t_srs EPSG:4326 indica el sistema de referencia de destino (target SRS). ogr2ogr reproyectará automáticamente los datos al sistema WGS84 geográfico. Si los datos fuente están en UTM u otra proyección, ogr2ogr aplicará la transformación matemática necesaria."},
+  {id:5,type:"Verdadero / Falso",points:8,text:"Docker Compose se usa cuando necesitas levantar múltiples contenedores relacionados con un solo comando.",options:["Verdadero — docker-compose.yml define y orquesta múltiples servicios a la vez","Falso — Docker Compose es solo una interfaz gráfica para Docker"],correct:0,hint:"Piensa en un escenario real: GeoServer + PostGIS. ¿Conviene levantarlos por separado con dos comandos, o juntos con uno?",explanation:"VERDADERO. Docker Compose lee un archivo docker-compose.yml que define múltiples servicios (GeoServer, PostGIS, Nginx, etc.), sus redes, volúmenes y dependencias. Con 'docker compose up -d' levanta todo el stack con un solo comando y gestiona las dependencias entre contenedores."},
+  {id:6,type:"Opción múltiple",points:8,text:"¿Qué información devuelve el comando ogrinfo archivo.gpkg -al -so?",options:["Lista los errores y advertencias del archivo GeoPackage","Muestra el resumen de cada capa: tipo de geometría, número de features, extensión y campos","Convierte el archivo a formato CSV","Comprime el archivo GeoPackage para reducir su tamaño"],correct:1,hint:"'ogrinfo' = información de OGR. '-al' = all layers, '-so' = summary only. ¿Qué tipo de información resumida esperarías?",explanation:"ogrinfo con -al (all layers) y -so (summary only) muestra para cada capa: nombre, tipo de geometría, número de features, extensión geográfica (bounding box), sistema de coordenadas y lista de campos con sus tipos. Es la forma más rápida de inspeccionar un archivo geoespacial."},
+  {id:7,type:"Opción múltiple",points:8,text:"¿Cuándo conviene usar Docker en lugar de instalar GeoServer con el archivo WAR?",options:["Siempre — Docker es superior en todos los escenarios","Cuando necesitas despliegues reproducibles, aislados y fáciles de replicar en múltiples entornos","Solo cuando no tienes acceso a internet para descargar el WAR","Docker no es adecuado para GeoServer porque consume demasiados recursos"],correct:1,hint:"Piensa en las ventajas de Docker: aislamiento, reproducibilidad, facilidad para replicar en diferentes servidores.",explanation:"Docker es ideal cuando necesitas: despliegues reproducibles (mismo resultado en dev, staging y producción), aislamiento del sistema operativo, fácil escalado horizontal, o cuando quieres levantar GeoServer + PostGIS juntos. El WAR es preferible cuando tienes infraestructura Tomcat existente o necesitas más control sobre la configuración del servidor."},
+  {id:8,type:"Verdadero / Falso",points:8,text:"El Shapefile de ESRI es un formato compuesto por un único archivo .shp que contiene toda la información.",options:["Verdadero — toda la información está en el archivo .shp principal","Falso — un Shapefile requiere mínimo 3 archivos: .shp, .dbf y .shx"],correct:1,hint:"Cuando compartes un Shapefile, ¿cuántos archivos necesitas incluir para que funcione correctamente?",explanation:"FALSO. Un Shapefile es un formato compuesto por múltiples archivos obligatorios: .shp (geometrías), .dbf (atributos en formato dBase), .shx (índice de geometrías). Opcionalmente incluye .prj (proyección), .cpg (codificación), entre otros. Si falta el .dbf o .shx, el Shapefile no funcionará."},
+  {id:9,type:"Opción múltiple",points:8,text:"¿Cuál es el propósito del parámetro 'depends_on' en un archivo docker-compose.yml?",options:["Indica qué imagen de Docker Hub descargar","Establece que un servicio debe iniciarse antes que otro (dependencia de orden)","Define la cantidad de memoria que puede usar cada contenedor","Especifica qué versión de Docker Compose usar"],correct:1,hint:"'depends_on' implica dependencia. Si GeoServer depende de PostGIS, ¿qué orden de arranque tendría sentido?",explanation:"'depends_on' define el orden de arranque entre servicios: el servicio que depende espera a que el servicio del que depende se inicie primero. Por ejemplo, 'geoserver: depends_on: - postgis' asegura que PostGIS arranque antes que GeoServer. Nota: no garantiza que PostGIS esté listo para aceptar conexiones, solo que su contenedor haya iniciado."},
+  {id:10,type:"Opción múltiple",points:8,text:"¿Qué formato de salida usa el flag -f 'PostgreSQL' en ogr2ogr?",options:["Exporta un archivo SQL con sentencias INSERT para PostgreSQL","Conecta directamente con una base de datos PostgreSQL/PostGIS y escribe los datos","Genera un archivo .sql compatible con el cliente psql","Crea un volcado de base de datos en formato binario de PostgreSQL"],correct:1,hint:"Cuando ogr2ogr usa el driver 'PostgreSQL', necesitas también una cadena de conexión PG:\"...\". ¿A dónde van los datos?",explanation:"Con -f 'PostgreSQL' y una cadena de conexión PG:\"host=... dbname=... user=...\", ogr2ogr escribe directamente en una base de datos PostgreSQL/PostGIS. Es la forma más eficiente de importar datos geoespaciales: crea la tabla automáticamente con el tipo de geometría correcto y soporta la opción -overwrite para actualizar datos existentes."},
+  {id:11,type:"Verdadero / Falso",points:10,text:"Con ogr2ogr puedes convertir un Shapefile a GeoJSON y al mismo tiempo reproyectarlo a EPSG:4326 en un solo comando.",options:["Verdadero — ogr2ogr puede combinar conversión de formato y reproyección en un solo paso","Falso — primero debes reproyectar y luego convertir el formato en pasos separados"],correct:0,hint:"¿Puedes combinar -f 'GeoJSON' con -t_srs EPSG:4326 en el mismo comando ogr2ogr?",explanation:"VERDADERO. ogr2ogr es muy potente: puede cambiar el formato de salida (-f), reproyectar (-t_srs), filtrar por atributos (-where), seleccionar campos (-select) y recortar por extensión (-spat) todo en un solo comando. Por ejemplo: ogr2ogr -f GeoJSON -t_srs EPSG:4326 salida.geojson entrada.shp"},
+  {id:12,type:"Opción múltiple",points:10,text:"¿Cuál es la limitación máxima en la longitud de los nombres de campo en el formato Shapefile?",options:["5 caracteres","10 caracteres","50 caracteres","255 caracteres"],correct:1,hint:"Esta limitación histórica del formato dBase (.dbf) es una de las razones más citadas para migrar a GeoPackage.",explanation:"El formato Shapefile hereda la limitación del formato dBase III para los nombres de campo: máximo 10 caracteres. Esto obliga a abreviar nombres como 'nombre_departamento' a 'nom_dpto' o similares, lo que reduce la legibilidad. GeoPackage no tiene esta limitación (permite hasta 255 caracteres)."}
+];
+</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>

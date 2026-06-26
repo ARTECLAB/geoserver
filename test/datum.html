@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · Clase 2 · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area">
+      <span class="logo-badge">ARTECLAB</span>
+      <span class="logo-name">GeoServer 3</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+      <span class="toggle-icon" aria-hidden="true">◐</span>
+      <span class="toggle-label">Oscuro</span>
+    </button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/><path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/></svg>
+        Módulo 2 · Clase 2
+      </span>
+      <h1 class="course-title">Instalación en Linux:<br>Java 17, Tomcat 11 y WAR</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Si aciertas a la primera obtienes el puntaje completo. Si necesitas el segundo intento, obtienes la mitad. Al finalizar verás tu nota con retroalimentación detallada.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+  <div id="quizContainer"></div>
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>Ver mi resultado final →</button>
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle">
+        <span class="result-score-num" id="resFinalScore">0</span>
+        <span class="result-score-of">/ 100</span>
+      </div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc"  id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct"><span class="result-stat-num" id="resCorrect">0</span><span class="result-stat-label">Correctas a la primera</span></div>
+        <div class="result-stat rs-second"><span class="result-stat-num" id="resSecond">0</span><span class="result-stat-label">Correctas en 2.º intento</span></div>
+        <div class="result-stat rs-wrong"><span class="result-stat-num" id="resWrong">0</span><span class="result-stat-label">Sin responder bien</span></div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+<footer class="site-footer">
+  <a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a>
+  &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0
+</footer>
+<script>
+window.QUIZ_QUESTIONS = [
+  {id:1,type:"Opción múltiple",points:8,text:"¿Cuál es el comando correcto para verificar que Java 17 está instalado en Linux?",options:["java --check-version","java -version","javac --version 17","check java 17"],correct:1,hint:"Es un flag corto y universal, funciona con cualquier versión de Java instalada.",explanation:"El comando 'java -version' muestra la versión instalada del JRE. Si ves 'openjdk version 17.x.x' significa que Java 17 está disponible. 'javac -version' también existe pero verifica el compilador, no el runtime."},
+  {id:2,type:"Verdadero / Falso",points:8,text:"Tomcat 9 es compatible con GeoServer 3 porque ambos soportan el protocolo HTTP estándar.",options:["Verdadero — el protocolo HTTP es suficiente para la compatibilidad","Falso — GeoServer 3 requiere Tomcat 11 por el cambio de javax a jakarta.servlet"],correct:1,hint:"La compatibilidad no depende del protocolo HTTP, sino del namespace de la API Java de servlets.",explanation:"FALSO. GeoServer 3 migró a Jakarta EE y usa el namespace 'jakarta.servlet'. Tomcat 9 solo soporta 'javax.servlet' (Java EE clásico). Aunque ambos usan HTTP, son incompatibles a nivel de API Java. Tomcat 10+ adoptó jakarta, y Tomcat 11 es el recomendado para GeoServer 3."},
+  {id:3,type:"Opción múltiple",points:8,text:"¿Qué es el archivo catalina.out en una instalación de Tomcat?",options:["El archivo de configuración principal de Tomcat","El log principal de Tomcat donde se registran arranques, errores y eventos del servidor","El archivo WAR de GeoServer desplegado","El directorio donde se guardan las sesiones de usuario"],correct:1,hint:"'Catalina' es el nombre del contenedor de servlets de Tomcat. El sufijo '.out' sugiere que es un archivo de salida de texto.",explanation:"catalina.out es el log principal de Tomcat, ubicado en la carpeta logs/. Registra todo: el arranque del servidor, el despliegue de aplicaciones WAR, errores de Java, y mensajes de GeoServer. Es lo primero que debes revisar cuando algo falla."},
+  {id:4,type:"Opción múltiple",points:8,text:"¿Para qué sirve la variable de entorno GEOSERVER_DATA_DIR?",options:["Define dónde se instala Tomcat","Define la carpeta donde GeoServer guarda su configuración, capas, estilos y logs","Establece la cantidad de memoria RAM que usará GeoServer","Indica la versión de Java que debe usar GeoServer"],correct:1,hint:"GeoServer necesita un lugar donde guardar toda su configuración persistente. Esta variable le indica dónde.",explanation:"GEOSERVER_DATA_DIR apunta al directorio de datos de GeoServer: ahí se guardan workspaces, stores, estilos SLD, logs y toda la configuración. Se recomienda ubicarlo fuera de la carpeta de Tomcat para facilitar actualizaciones sin perder configuración."},
+  {id:5,type:"Verdadero / Falso",points:8,text:"Al copiar el archivo geoserver.war en la carpeta webapps de Tomcat, GeoServer se despliega automáticamente.",options:["Verdadero — Tomcat detecta el WAR y lo despliega sin intervención manual","Falso — es necesario ejecutar un comando adicional para desplegar el WAR"],correct:0,hint:"Esta es una característica fundamental de Tomcat llamada 'auto-deploy'. ¿Qué crees que ocurre cuando Tomcat detecta un nuevo .war?",explanation:"VERDADERO. Tomcat tiene habilitado por defecto el auto-deploy: detecta nuevos archivos .war en la carpeta webapps/ y los despliega automáticamente. Puedes ver el proceso en catalina.out. El despliegue puede tardar 30-120 segundos dependiendo del servidor."},
+  {id:6,type:"Opción múltiple",points:8,text:"¿Qué hace la opción -Xmx2g en la configuración de Java para GeoServer?",options:["Establece el número máximo de hilos de ejecución en 2","Fija la memoria heap máxima de Java en 2 gigabytes","Activa el modo de 2 procesadores para GeoServer","Define el timeout de conexiones en 2 segundos"],correct:1,hint:"'X' es un parámetro no estándar de Java, 'mx' viene de 'max', y '2g' es una cantidad. ¿Qué recurso del sistema podría ser?",explanation:"-Xmx2g establece el tamaño máximo del heap de Java en 2 GB. GeoServer necesita suficiente memoria para procesar capas grandes y múltiples peticiones simultáneas. Para producción se recomienda -Xms1g -Xmx2g o más, dependiendo de la carga esperada."},
+  {id:7,type:"Opción múltiple",points:8,text:"¿Cuál es la URL por defecto para acceder a la interfaz de GeoServer después de instalarlo en Tomcat?",options:["http://localhost:80/geoserver","http://localhost:8080/geoserver","http://localhost:8443/geoserver/web","http://localhost:9090/geoserver"],correct:1,hint:"Tomcat usa por defecto un puerto no privilegiado (mayor a 1024) para evitar necesitar permisos de root. El estándar de Tomcat es bien conocido.",explanation:"La URL por defecto es http://localhost:8080/geoserver. Tomcat escucha en el puerto 8080 por defecto (HTTP). Si instalas con HTTPS es el 8443. El contexto /geoserver viene del nombre del archivo WAR: geoserver.war."},
+  {id:8,type:"Verdadero / Falso",points:8,text:"Lo primero que debes hacer después de instalar GeoServer es cambiar la contraseña por defecto del usuario admin.",options:["Verdadero — las credenciales por defecto (admin/geoserver) son públicamente conocidas","Falso — las credenciales por defecto son suficientemente seguras para un entorno de producción"],correct:0,hint:"Las credenciales por defecto de GeoServer están en la documentación oficial y son conocidas por toda la comunidad GIS.",explanation:"VERDADERO. Las credenciales por defecto (admin/geoserver) son conocidas públicamente. Cualquier escáner de vulnerabilidades las detecta. Cambiar la contraseña inmediatamente después de la instalación es el paso de seguridad más básico e importante."},
+  {id:9,type:"Opción múltiple",points:8,text:"¿Para qué sirve crear un servicio systemd para Tomcat en Linux?",options:["Para que Tomcat tenga acceso a más puertos del sistema","Para que Tomcat y GeoServer se inicien automáticamente al arrancar el servidor","Para aumentar el rendimiento de GeoServer en múltiples núcleos","Para habilitar HTTPS en el servidor"],correct:1,hint:"Los servicios systemd se gestionan con systemctl. ¿Qué ventaja tiene registrar Tomcat como servicio del sistema operativo?",explanation:"Un servicio systemd permite que Tomcat (y por tanto GeoServer) se inicie automáticamente cuando el servidor Linux arranca, se reinicie si falla, y pueda gestionarse con comandos estándar: systemctl start/stop/restart/status tomcat."},
+  {id:10,type:"Opción múltiple",points:8,text:"¿Cuánta memoria RAM mínima se recomienda para un servidor GeoServer en producción?",options:["512 MB — GeoServer es muy ligero","1 GB — suficiente para cualquier carga","4 GB — para manejar capas grandes y peticiones simultáneas","16 GB — GeoServer requiere mucha memoria siempre"],correct:2,hint:"GeoServercesa imágenes, hace reproyecciones y puede atender muchas peticiones a la vez. ¿Qué cantidad es razonable para producción sin ser excesiva?",explanation:"Se recomienda mínimo 4 GB de RAM para producción, con 2 GB asignados al heap de Java (-Xmx2g). Para cargas altas o capas raster grandes se recomienda 8 GB o más. Con menos de 2 GB GeoServer puede experimentar errores OutOfMemoryError bajo carga."},
+  {id:11,type:"Verdadero / Falso",points:10,text:"El directorio de datos de GeoServer (GEOSERVER_DATA_DIR) debe estar siempre dentro de la carpeta de instalación de Tomcat.",options:["Verdadero — GeoServer no puede acceder a directorios fuera de Tomcat","Falso — se recomienda ubicarlo fuera de Tomcat para facilitar actualizaciones"],correct:1,hint:"¿Qué pasa con los datos si actualizas Tomcat o reinstalaas GeoServer? ¿Conviene tenerlos mezclados con los archivos del servidor?",explanation:"FALSO. Se recomienda ubicar GEOSERVER_DATA_DIR fuera de Tomcat (por ejemplo /opt/geoserver_data/). Así, cuando actualizas Tomcat o GeoServer, los datos y configuraciones no se ven afectados. Es una práctica estándar de separación entre aplicación y datos."},
+  {id:12,type:"Opción múltiple",points:10,text:"¿Qué herramienta de Linux permite verificar si el puerto 8080 está siendo usado por Tomcat?",options:["ping 8080","netstat -tlnp | grep 8080  o  ss -tlnp | grep 8080","ls /etc/tomcat","cat /var/log/syslog | grep port"],correct:1,hint:"Necesitas una herramienta que liste las conexiones de red y puertos en escucha del sistema.",explanation:"Los comandos 'netstat -tlnp | grep 8080' o 'ss -tlnp | grep 8080' muestran los puertos TCP en escucha y qué proceso los usa. Si Tomcat está corriendo verás el PID de Java escuchando en :8080. 'ss' es la versión moderna de 'netstat' en sistemas Linux actuales."}
+];
+</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>

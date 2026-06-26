@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area"><span class="logo-badge">ARTECLAB</span><span class="logo-name">GeoServer 3</span></div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema"><span class="toggle-icon" aria-hidden="true">◐</span><span class="toggle-label">Oscuro</span></button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/><path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/></svg>Módulo 7 · Clase 8</span>
+      <h1 class="course-title">Proyecto Final:<br>IDE Municipal con OpenLayers</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Primer intento correcto: puntaje completo. Segundo intento: la mitad.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+  <div id="quizContainer"></div>
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>Ver mi resultado final →</button>
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle"><span class="result-score-num" id="resFinalScore">0</span><span class="result-score-of">/ 100</span></div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc" id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct"><span class="result-stat-num" id="resCorrect">0</span><span class="result-stat-label">Correctas a la primera</span></div>
+        <div class="result-stat rs-second"><span class="result-stat-num" id="resSecond">0</span><span class="result-stat-label">Correctas en 2.º intento</span></div>
+        <div class="result-stat rs-wrong"><span class="result-stat-num" id="resWrong">0</span><span class="result-stat-label">Sin responder bien</span></div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+<footer class="site-footer"><a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a> &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0</footer>
+<script>window.QUIZ_QUESTIONS = [
+  {id:1,type:"Opción múltiple",points:8,text:"¿Qué significa IDE en el contexto de datos geoespaciales?",options:["Integrated Development Environment para SIG","Infraestructura de Datos Espaciales — sistema que facilita el acceso y uso compartido de información geográfica","International Data Exchange para formatos OGC","Interface de Datos Estadísticos para censos"],correct:1,hint:"El término se refiere a una infraestructura (como una red o plataforma) dedicada a datos de tipo espacial.",explanation:"Una IDE (Infraestructura de Datos Espaciales) es un sistema que combina datos geoespaciales, servicios web (WMS, WFS, CSW), tecnología (servidores de mapas, bases de datos) y políticas para facilitar el acceso, intercambio y uso de información geográfica entre organizaciones y usuarios."},
+  {id:2,type:"Verdadero / Falso",points:8,text:"Al conectar OpenLayers con un servicio WMS de GeoServer, el parámetro crossOrigin dbe incluirse en TileWMS para que las teselas carguen correctamente.",options:["Verdadero — crossOrigin es obligatorio para todas las peticiones a GeoServer desde OpenLayers","Falso — crossOrigin debe omitirse en TileWMS porque las teselas se cargan como elementos img, no como XHR"],correct:1,hint:"Las teselas WMS se cargan como imágenes HTML (<img>), no como peticiones XHR/fetch. ¿Cómo afecta eso a la política CORS?",explanation:"FALSO. En OpenLayers, TileWMS carga las teselas como elementos <img>, que no están sujetos a las restricciones CORS de XHR. Incluir crossOrigin: 'anonymous' puede causar errores si el servidor no devuelve los headers CORS correctos. Este parámetro solo debe usarse en capas donde necesites acceder a los píxeles de la imagen via Canvas (ej: GetFeatureInfo por píxel)."},
+  {id:3,type:"Opción múltiple",points:8,text:"¿Cómo se implementa el GetFeatureInfo (popups al hacer clic) en un mapa OpenLayers con GeoServer?",options:["Se usa la función map.getFeatureInfo() de OpenLayers automáticamente","Se escucha el evento singleclick, se construye la URL GetFeatureInfo con las coordenadas y se hace fetch al resultado","Se configura directamente en GeoServer sin código en el cliente","Se usa el plugin ol-popup que lo implementa automáticamente"],correct:1,hint:"GetFeatureInfo es una operación WMS. El cliente necesita construir la URL correcta con las coordenadas del clic y solicitar la información.",explanation:"La implementación típica: 1) map.on('singleclick', function(evt) {...}), 2) construir la URL con source.getFeatureInfoUrl(evt.coordinate, resolution, 'EPSG:3857', {INFO_FORMAT: 'application/json'}), 3) fetch(url).then(r => r.json()).then(data => mostrar popup). GeoServer devuelve los atributos del feature clickeado."},
+  {id:4,type:"Opción múltiple",points:8,text:"¿Cuál es la primera acción de seguridad recomendada antes de poner GeoServer en producción?",options:["Instalar un certificado SSL/HTTPS","Cambiar la contraseña por defecto del usuario admin (admin/geoserver)","Configurar el firewall para bloquear el puerto 8080","Activar el modo de solo lectura en todas las capas"],correct:1,hint:"Las credenciales por defecto son públicamente conocidas. ¿Cuál es el riesgo inmediato más crítico antes de cualquier otra configuración?",explanation:"Cambiar la contraseña del usuario admin es la primera acción de seguridad. Las credenciales admin/geoserver son públicas y cualquier escáner de seguridad las intentará. Con acceso admin, alguien puede ver todos los datos, eliminar configuraciones o explotar el servidor. Las demás medidas son importantes pero secundarias."},
+  {id:5,type:"Verdadero / Falso",points:8,text:"En GeoServer 3, la ubicación del archivo de log debe configurarse con la variable de entorno GEOSERVER_LOG_LOCATION, no desde la interfaz web.",options:["Verdadero — GeoServer 3 eliminó la configuración de Log Location desde la interfaz de administración","Falso — la configuración de logs sigue disponible en la interfaz web en la sección de Ajustes Globales"],correct:0,hint:"Este fue uno de los cambios de comportamiento de GeoServer 3 respecto a la configuración del sistema.",explanation:"VERDADERO. En GeoServer 3, la opción 'Log Location' fue eliminada de la página de Ajustes Globales (Global Settings) de la interfaz web. La ubicación del log ahora debe configurarse mediante la variable de entorno o propiedad del sistema GEOSERVER_LOG_LOCATION. Esto sigue las mejores prácticas de aplicaciones cloud-native."},
+  {id:6,type:"Opción múltiple",points:8,text:"¿Qué es la API REST de GeoServer y para qué se usa?",options:["Es el reemplazo de WMS en GeoServer 3","Es una interfaz de programación que permite administrar GeoServer (capas, estilos, configuración) de forma automatizada","Es el protocolo que usan los clientes web para consumir teselas WMTS","Es una extensión de pago para automatizar backups"],correct:1,hint:"REST es un estilo de arquitectura para APIs web. GeoServer expone su configuración administrativa a través de esta interfaz. ¿Para qué serviría?",explanation:"La API REST de GeoServer permite administrar el servidor programáticamente: crear workspaces, añadir stores, publicar capas, gestionar estilos y configurar servicios usando peticiones HTTP (GET, POST, PUT, DELETE) con respuestas en JSON o XML. Es esencial para automatización, CI/CD y herramientas de DevOps que gestionan GeoServer."},
+  {id:7,type:"Verdadero / Falso",points:8,text:"Un Layer Group en GeoServer puede combinarse con WMTS para servir un mapa base compuesto como teselas en caché.",options:["Verdadero — GeoWebCache puede generar teselas de Layer Groups igual que de capas individuales","Falso — GeoWebCache solo puede cachear capas individuales, no Layer Groups"],correct:0,hint:"Si puedes publicar un Layer Group como servicio WMS, ¿podría GeoWebCache también generarle teselas?",explanation:"VERDADERO. GeoWebCache puede generar y cachear teselas de Layer Groups exactamente igual que de capas individuales. Esto es muy útil para mapas base compuestos (departamentos + vías + ciudades + hidrografía): se sirven como WMTS con altísimo rendimiento, como si fueran una sola capa."},
+  {id:8,type:"Opción múltiple",points:8,text:"¿Cuál es la forma correcta de hacer backup del Data Directory de GeoServer?",options:["Exportar desde la interfaz web con el botón 'Backup' de la sección Admin","Copiar la carpeta GEOSERVER_DATA_DIR completa cuando el servidor está detenido o usando herramientas de backup en caliente","Usar mysqldump para exportar la configuración de GeoServer","Descargar el archivo WAR actualizado desde geoserver.org"],correct:1,hint:"La configuración de GeoServer vive en el Data Directory. ¿Cuál es la forma más segura de copiar ese directorio?",explanation:"El backup de GeoServer consiste en copiar la carpeta GEOSERVER_DATA_DIR. Para un backup limpio se recomienda detener el servidor primero. En producción con necesidad de backup en caliente se puede usar rsync, snapshots del sistema de archivos, o herramientas de backup que manejan archivos en uso. No hay una opción de backup nativa en la UI de GeoServer."},
+  {id:9,type:"Opción múltiple",points:8,text:"¿Qué ventaja principal ofrece OGC API Features respecto al WFS clásico?",options:["OGC API Features es más rápido porque usa protocolos propietarios optimizados","OGC API Features usa REST y JSON nativos, es más fácil de consumir desde aplicaciones web modernas","OGC API Features reemplaza WMS y WFS en un único protocolo","OGC API Features solo funciona con PostGIS y no con archivos"],correct:1,hint:"Los estándares OGC más nuevos tienden a adoptar las convenciones web modernas. ¿Cuáles son esas convenciones?",explanation:"OGC API Features (el sucesor de WFS) usa REST con URLs intuitivas (/collections, /items) y respuestas en GeoJSON o JSON-LD. Esto lo hace mucho más fácil de consumir desde JavaScript, Python o cualquier cliente HTTP moderno, sin necesitar librerías especializadas para parsear XML complejo como requería WFS clásico."},
+  {id:10,type:"Verdadero / Falso",points:8,text:"Al usar WMTS en lugar de WMS para un mapa base en OpenLayers, la carga inicial del mapa será visiblemente más rápida.",options:["Verdadero — WMTS sirve teselas pre-generadas en caché, lo que reduce enormemente el tiempo de respuesta del servidor","Falso — la velocidad de carga depende solo del ancho de banda del usuario, no del tipo de servicio"],correct:0,hint:"Compara el tiempo de respuesta de leer un archivo de imagen ya guardado vs. renderizar una imagen desde cero para cada petición.",explanation:"VERDADERO. Con WMTS, el servidor simplemente lee el archivo de tesela del disco y lo devuelve (milisegundos). Con WMS dinámico, debe acceder a los datos, aplicar estilos, reproyectar si es necesario y renderizar la imagen (puede tardar 100ms-2s según la complejidad). Para mapas base con millones de usuarios, la diferencia es enorme."},
+  {id:11,type:"Opción múltiple",points:10,text:"¿Cuál es el checklist mínimo de seguridad antes de publicar un GeoServer en producción?",options:["Solo cambiar la contraseña del admin","Cambiar contraseña admin, configurar HTTPS, activar GeoWebCache, revisar permisos por workspace y configurar logs","Instalar un antivirus en el servidor Linux","Desactivar todos los servicios WFS para evitar descargas no autorizadas"],correct:1,hint:"La seguridad en producción es multicapa. ¿Qué áreas cubre una configuración mínima razonable?",explanation:"Un checklist mínimo de producción incluye: 1) Cambiar contraseña admin, 2) Configurar HTTPS (SSL), 3) Configurar CORS correctamente (Jetty 12 en GS3), 4) Definir roles y restricciones por workspace/capa, 5) Activar GeoWebCache para rendimiento, 6) Configurar GEOSERVER_LOG_LOCATION, 7) Establecer permisos de solo lectura donde sea posible, 8) Hacer backup del Data Directory."},
+  {id:12,type:"Opción múltiple",points:10,text:"En un proyecto IDE completo, ¿cuál es el rol específico de PostGIS dentro de la arquitectura?",options:["PostGIS reemplaza a GeoServer como servidor de mapas","PostGIS es el motor de almacenamiento y consulta espacial; GeoServer lo usa como fuente de datos para publicar servicios OGC","PostGIS gestiona la caché de teselas y el rendimiento de los servicios WMS","PostGIS es el cliente web que muestra los mapas al usuario final"],correct:1,hint:"Cada componente de la arquitectura IDE tiene un rol específico. ¿Cuál es la función de una base de datos en ese contexto?",explanation:"En la arquitectura IDE: PostGIS es el motor de base de datos espacial (almacena datos, ejecuta consultas SQL espaciales, gestiona índices); GeoServer lee de PostGIS y publica servicios OGC (WMS, WFS, WMTS); OpenLayers/Leaflet consume esos servicios en el navegador. Cada componente hace lo que mejor sabe hacer."}
+];</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area"><span class="logo-badge">ARTECLAB</span><span class="logo-name">GeoServer 3</span></div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema"><span class="toggle-icon" aria-hidden="true">◐</span><span class="toggle-label">Oscuro</span></button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/><path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/></svg>Módulo 5 · Clase 6</span>
+      <h1 class="course-title">PostGIS + GeoServer:<br>Publicación desde Base de Datos</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Primer intento correcto: puntaje completo. Segundo intento: la mitad.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+  <div id="quizContainer"></div>
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>Ver mi resultado final →</button>
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle"><span class="result-score-num" id="resFinalScore">0</span><span class="result-score-of">/ 100</span></div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc" id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct"><span class="result-stat-num" id="resCorrect">0</span><span class="result-stat-label">Correctas a la primera</span></div>
+        <div class="result-stat rs-second"><span class="result-stat-num" id="resSecond">0</span><span class="result-stat-label">Correctas en 2.º intento</span></div>
+        <div class="result-stat rs-wrong"><span class="result-stat-num" id="resWrong">0</span><span class="result-stat-label">Sin responder bien</span></div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+<footer class="site-footer"><a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a> &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0</footer>
+<script>window.QUIZ_QUESTIONS = [
+  {id:1,type:"Opción múltiple",points:8,text:"¿Cuál es la ventaja principal de publicar desde PostGIS en lugar de archivos Shapefile o GeoPackage?",options:["PostGIS es más barato que los formatos de archivo","Los datos en PostGIS pueden editarse en tiempo real, consultarse con SQL y escalar a millones de registros","PostGIS siempre tiene mejor rendimiento independientemente del caso de uso","Los archivos GeoPackage no son compatibles con GeoServer"],correct:1,hint:"Piensa en las capacidades de una base de datos relacional vs. un archivo estático en disco.",explanation:"PostGIS ofrece: edición en tiempo real por múltiples usuarios simultáneos, consultas SQL complejas ejecutadas en servidor (más eficientes), índices espaciales optimizados, transacciones WFS-T desde QGIS, y escala bien a millones de registros. Los archivos son más simples pero no tienen estas capacidades."},
+  {id:2,type:"Opción múltiple",points:8,text:"¿Qué comando SQL activa la extensión espacial PostGIS en una base de datos PostgreSQL?",options:["INSTALL EXTENSION postgis;","CREATE EXTENSION postgis;","ENABLE POSTGIS;","ALTER DATABASE ADD SPATIAL;"],correct:1,hint:"En PostgreSQL, las extensiones se activan con un comando estándar de dos palabras.",explanation:"CREATE EXTENSION postgis; es el comando que activa PostGIS en una base de datos PostgreSQL. Debe ejecutarse una vez por base de datos, con un usuario que tenga privilegios. También se puede añadir CREATE EXTENSION postgis_topology; para soporte de topología avanzada."},
+  {id:3,type:"Verdadero / Falso",points:8,text:"Un índice espacial de tipo GIST en PostGIS mejora significativamente el rendimiento de las consultas con filtros espaciales.",options:["Verdadero — GIST es el índice R-Tree generalizado de PostgreSQL, optimizado para geometrías","Falso — los índices espaciales no tienen efecto en consultas con filtros de geometría"],correct:0,hint:"Los índices en bases de datos sirven para evitar escaneos completos de tabla. ¿Por qué sería diferente para datos espaciales?",explanation:"VERDADERO. El índice GIST (Generalized Search Tree) implementa un R-Tree para geometrías en PostGIS. Sin él, una consulta espacial escanea toda la tabla. Con él, PostgreSQL usa el índice para descartar rápidamente geometrías que no intersectan el área de búsqueda. Se crea con: CREATE INDEX idx ON tabla USING GIST(geom);"},
+  {id:4,type:"Opción múltiple",points:8,text:"¿Cuál de estos parámetros NO es necesario configurar al crear un Datastore PostGIS en GeoServer?",options:["Host (dirección del servidor)","Database (nombre de la base de datos)","Schema (esquema de PostgreSQL)","El tamaño en MB de la base de datos"],correct:3,hint:"GeoServer necesita saber dónde está la base de datos, cómo llamarla y en qué esquema buscar. ¿Necesita saber el tamaño?",explanation:"El tamaño en MB de la base de datos no es un parámetro de GeoServer. Los parámetros necesarios son: host, port (5432 por defecto), database, schema (generalmente public), user y password. También es útil configurar el Connection Pool (min/max connections) para producción."},
+  {id:5,type:"Opción múltiple",points:8,text:"¿Qué es el Connection Pool en un Datastore PostGIS de GeoServer?",options:["Un grupo de conexiones pre-establecidas listas para ser usadas, que evita crear una conexión nueva por cada petición","Una capa virtual que agrupa múltiples tablas en una sola","Una caché de teselas para acelerar la visualización de datos PostGIS","El número máximo de capas que puede publicar el Datastore"],correct:0,hint:"Crear una conexión a una base de datos tiene un costo de tiempo. ¿Qué técnica permite reutilizar conexiones ya establecidas?",explanation:"El Connection Pool mantiene un conjunto de conexiones a PostgreSQL siempre abiertas y listas. Cuando GeoServer recibe una petición, toma una conexión del pool (en vez de crear una nueva), la usa y la devuelve al pool. Esto reduce drásticamente la latencia en entornos con muchas peticiones simultáneas."},
+  {id:6,type:"Verdadero / Falso",points:8,text:"Al publicar una vista SQL de PostGIS en GeoServer, el rendimiento siempre será peor que publicar la tabla original.",options:["Verdadero — las vistas SQL siempre son más lentas que las tablas directas","Falso — una vista SQL con índices apropiados puede tener rendimiento equivalente o incluso mejor que la tabla original"],correct:1,hint:"¿Qué factores determinan el rendimiento de una consulta en PostgreSQL? ¿Solo si es tabla o vista?",explanation:"FALSO. El rendimiento depende del plan de ejecución de PostgreSQL, no de si es tabla o vista. Una vista bien diseñada con índices espaciales adecuados puede ser tan rápida como la tabla. Las vistas materializadas (MATERIALIZED VIEW) incluso almacenan el resultado en disco y pueden ser más rápidas que la tabla original para consultas complejas."},
+  {id:7,type:"Opción múltiple",points:8,text:"¿Para qué sirve el flag -overwrite en un comando ogr2ogr al importar a PostGIS?",options:["Aumenta la velocidad de importación sobreescribiendo el índice espacial","Elimina la tabla existente y la recrea con los nuevos datos","Permite importar el archivo aunque esté siendo usado por otra aplicación","Desactiva las restricciones de clave primaria durante la importación"],correct:1,hint:"Si ya tienes la tabla municipios en PostGIS y quieres actualizarla con datos nuevos, ¿qué necesitas hacer?",explanation:"-overwrite hace que ogr2ogr elimine la tabla destino si existe y la recree con los nuevos datos. Sin este flag, ogr2ogr falla si la tabla ya existe. También existe -append que agrega filas a una tabla existente sin eliminarla. Para actualizaciones completas de datos se usa -overwrite."},
+  {id:8,type:"Verdadero / Falso",points:8,text:"Se recomienda crear un usuario PostgreSQL de solo lectura específico para que GeoServer acceda a la base de datos de producción.",options:["Verdadero — el principio de mínimo privilegio indica que GeoServer solo necesita SELECT para leer datos","Falso — GeoServer necesita permisos de escritura completos para funcionar correctamente"],correct:0,hint:"¿Qué operaciones necesita hacer GeoServer normalmente al servir mapas? ¿Necesita modificar datos?",explanation:"VERDADERO. Para publicación de datos (WMS/WFS de solo lectura), GeoServer solo necesita el privilegio SELECT. Crear un usuario de solo lectura (GRANT SELECT ON ALL TABLES TO geouser_read) limita el daño si las credenciales son comprometidas. Solo en caso de WFS transaccional (edición) se necesitan permisos INSERT/UPDATE/DELETE."},
+  {id:9,type:"Opción múltiple",points:8,text:"¿Qué filtro CQL usarías para obtener solo las capas de un departamento específico?",options:["nombre_departamento LIKE departamento","nombre_departamento = 'SANTA CRUZ'","FILTER(nombre_departamento) = 'SANTA CRUZ'","WHERE nombre_departamento IS 'SANTA CRUZ'"],correct:1,hint:"La sintaxis CQL para comparación de texto es similar a SQL estándar, pero más simple y sin la palabra clave WHERE.",explanation:"En CQL (Common Query Language), la comparación de igualdad para texto usa el operador = con el valor entre comillas simples: nombre_departamento = 'SANTA CRUZ'. La sintaxis es similar a SQL pero sin la cláusula WHERE (CQL ya es el predicado). Se pasa como parámetro CQL_FILTER en la URL del WMS o WFS."},
+  {id:10,type:"Opción múltiple",points:8,text:"¿Cuándo es preferible usar una Vista Materializada en PostGIS en lugar de una vista regular?",options:["Siempre — las vistas materializadas son siempre más eficientes","Cuando los datos cambian frecuentemente y necesitas resultados siempre actualizados al instante","Cuando los datos se actualizan poco frecuentemente y la consulta de la vista es computacionalmente costosa","Las vistas materializadas no son compatibles con GeoServer"],correct:2,hint:"Una vista materializada almacena el resultado en disco. ¿Cuándo tiene sentido pagar el costo de almacenamiento adicional?",explanation:"Las vistas materializadas almacenan el resultado de la consulta en disco como una tabla real. Son ideales para: consultas complejas que tardan segundos (uniones múltiples, cálculos agregados), datos que se actualizan periódicamente (no en tiempo real), y capas de análisis preprocesado. Se actualizan con REFRESH MATERIALIZED VIEW nombre_vista;"},
+  {id:11,type:"Verdadero / Falso",points:10,text:"WFS-T (WFS Transaccional) permite editar datos directamente en PostGIS desde un cliente como QGIS a través de GeoServer.",options:["Verdadero — WFS-T soporta operaciones INSERT, UPDATE y DELETE sobre los datos publicados","Falso — a través de GeoServer los datos son siempre de solo lectura"],correct:0,hint:"La T en WFS-T significa Transaccional. ¿Qué implica ese término en el contexto de bases de datos?",explanation:"VERDADERO. WFS-T (Web Feature Service Transaccional) extiende WFS con operaciones de escritura: Insert (crear features), Update (modificar atributos o geometrías) y Delete (eliminar features). QGIS puede conectarse a una capa WFS-T publicada en GeoServer y editar los datos directamente en PostGIS, con las restricciones de seguridad que definas."},
+  {id:12,type:"Opción múltiple",points:10,text:"¿Qué función PostGIS usarías para calcular el centroide de una geometría de polígono?",options:["ST_Center(geom)","ST_Centroid(geom)","ST_PointCenter(geom)","PostGIS_Centroid(geom)"],correct:1,hint:"Las funciones espaciales de PostGIS siguen la convención ST_ (Spatial Type). El nombre de la función describe directamente la operación.",explanation:"ST_Centroid(geom) devuelve el punto central (centroide matemático) de una geometría. Para polígonos complejos o cóncavos, ST_PointOnSurface(geom) garantiza que el punto esté dentro del polígono (el centroide puede caer fuera). Ambas funciones son estándar en PostGIS y se pueden usar en vistas SQL publicables en GeoServer."}
+];</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>

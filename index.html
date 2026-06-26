@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoServer 3 · Presentaciones · ARTECLAB</title>
+<link rel="stylesheet" href="assets/slides.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  /* Toggle flotante */
+  .toggle-wrap {
+    position: fixed;
+    top: 16px; right: 20px;
+    z-index: 200;
+  }
+  .theme-btn {
+    background: rgba(13,27,62,0.9);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Hero */
+  .hero {
+    background: var(--navy);
+    padding: 80px 24px 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,155,60,.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,155,60,.055) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .hero-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: blink 2.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .hero-title {
+    color: #fff;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -.5px;
+    margin-bottom: 14px;
+  }
+  .hero-title em { color: var(--gold-light); font-style: normal; }
+
+  .hero-desc {
+    color: #6A7FA8;
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 400px;
+    margin: 0 auto 32px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat-num {
+    color: var(--gold-light);
+    font-size: 22px;
+    font-weight: 700;
+    display: block;
+    line-height: 1;
+  }
+  .hero-stat-label {
+    color: #6A7FA8;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-top: 3px;
+    display: block;
+  }
+  .hero-sep {
+    width: 1px;
+    background: rgba(255,255,255,.08);
+    align-self: stretch;
+  }
+
+  /* Main */
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 48px 20px 64px;
+    flex: 1;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  /* Deck grid */
+  .deck-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 48px;
+  }
+
+  .deck-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px 18px;
+    text-decoration: none;
+    transition: border-color .15s, transform .15s, background var(--t);
+  }
+  .deck-item:hover {
+    border-color: var(--gold);
+    transform: translateX(3px);
+  }
+
+  .deck-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: var(--gold-light);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--t);
+  }
+  [data-theme="dark"] .deck-num { background: var(--navy-light); }
+  .deck-item:hover .deck-num {
+    background: var(--gold);
+    color: var(--navy);
+  }
+
+  .deck-info { flex: 1; min-width: 0; }
+  .deck-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+    margin-bottom: 2px;
+    transition: color var(--t);
+  }
+  .deck-topic {
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    transition: color var(--t);
+  }
+
+  .deck-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .deck-slides {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: .3px;
+  }
+  .deck-arrow {
+    color: var(--muted);
+    font-size: 16px;
+    transition: color .15s, transform .15s;
+  }
+  .deck-item:hover .deck-arrow {
+    color: var(--gold);
+    transform: translateX(2px);
+  }
+
+  /* Instructor */
+  .instructor {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    transition: background var(--t), border-color var(--t);
+  }
+  .inst-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 2px solid var(--gold);
+    color: var(--gold-light);
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--t);
+  }
+  [data-theme="dark"] .inst-avatar { background: var(--navy-light); }
+  .inst-info { flex: 1; min-width: 0; }
+  .inst-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+    transition: color var(--t);
+  }
+  .inst-role {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    transition: color var(--t);
+  }
+  .inst-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .inst-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid rgba(200,155,60,.3);
+    border-radius: 20px;
+    padding: 3px 11px;
+    transition: background .15s, border-color .15s;
+  }
+  .inst-link:hover { background: var(--gold-pale); border-color: var(--gold); }
+
+  /* Footer */
+  .footer {
+    background: var(--navy);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    transition: background var(--t);
+  }
+  .footer-copy {
+    font-size: 11px;
+    color: #6A7FA8;
+  }
+  .footer-copy a { color: var(--gold); text-decoration: none; }
+  .footer-right { font-size: 11px; color: #6A7FA8; }
+
+  @media (max-width: 560px) {
+    .hero { padding: 60px 16px 48px; }
+    .hero-title { font-size: 26px; }
+    .hero-sep { display: none; }
+    .deck-slides { display: none; }
+    .instructor { flex-direction: column; text-align: center; }
+    .inst-links { justify-content: center; }
+    .footer { justify-content: center; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toggle-wrap">
+  <button class="theme-btn" id="themeBtn" aria-label="Cambiar tema">
+    <span class="t-icon" aria-hidden="true">◐</span>
+    <span class="t-label">Oscuro</span>
+  </button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <span class="hero-dot"></span>
+      ARTECLAB · GeoServer 3 · <span class="auto-year"></span>
+    </div>
+    <h1 class="hero-title">Presentaciones<br>del <em>curso</em></h1>
+    <p class="hero-desc">
+      Material de clase para GeoServer 3 — de la instalación al despliegue en producción.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="hero-stat-num">8</span>
+        <span class="hero-stat-label">Clases</span>
+      </div>
+      <div class="hero-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">108</span>
+        <span class="hero-stat-label">Slides</span>
+      </div>
+      <div class="hero-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">16h</span>
+        <span class="hero-stat-label">Duración</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="section-label">Clases del curso</div>
+
+  <div class="deck-grid">
+    <a href="meridian.html" class="deck-item">
+      <div class="deck-num">1</div>
+      <div class="deck-info">
+        <span class="deck-name">Fundamentos y Arquitectura</span>
+        <span class="deck-topic">¿Qué es GeoServer 3? · Workspace → Store → Layer · Servicios OGC</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">16 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="datum.html" class="deck-item">
+      <div class="deck-num">2</div>
+      <div class="deck-info">
+        <span class="deck-name">Instalación en Linux</span>
+        <span class="deck-topic">Java 17 · Tomcat 11 · WAR · systemd · Data Directory</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">16 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="vector.html" class="deck-item">
+      <div class="deck-num">3</div>
+      <div class="deck-info">
+        <span class="deck-name">Docker y Conversión de Datos</span>
+        <span class="deck-topic">Docker Compose · ogr2ogr · GeoPackage vs Shapefile</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">13 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="raster.html" class="deck-item">
+      <div class="deck-num">4</div>
+      <div class="deck-info">
+        <span class="deck-name">Publicación de Capas</span>
+        <span class="deck-topic">Workspaces · Stores · Layers vectoriales y raster · Layer Groups</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">14 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="symbology.html" class="deck-item">
+      <div class="deck-num">5</div>
+      <div class="deck-info">
+        <span class="deck-name">Estilos con SLD y CSS</span>
+        <span class="deck-topic">Simbología categorizada · Etiquetas · Escala dependiente · ColorMap</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">12 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="topology.html" class="deck-item">
+      <div class="deck-num">6</div>
+      <div class="deck-info">
+        <span class="deck-name">PostGIS + GeoServer</span>
+        <span class="deck-topic">Base de datos espacial · ogr2ogr → PostGIS · Vistas SQL como capas</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">13 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="ogcapi.html" class="deck-item">
+      <div class="deck-num">7</div>
+      <div class="deck-info">
+        <span class="deck-name">Servicios OGC, CQL y Seguridad</span>
+        <span class="deck-topic">WMS · WFS · WMTS · Filtros espaciales · Roles y acceso por capa</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">13 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+
+    <a href="geodesia.html" class="deck-item">
+      <div class="deck-num">8</div>
+      <div class="deck-info">
+        <span class="deck-name">Proyecto Final — IDE Municipal</span>
+        <span class="deck-topic">PostGIS + GeoServer + OpenLayers · Visor web · GetFeatureInfo</span>
+      </div>
+      <div class="deck-right">
+        <span class="deck-slides">11 slides</span>
+        <span class="deck-arrow">›</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Instructor -->
+  <div class="section-label">Instructor</div>
+  <div class="instructor">
+    <div class="inst-avatar">DQ</div>
+    <div class="inst-info">
+      <div class="inst-name">Daniel Quisbert</div>
+      <div class="inst-role">Instructor GIS · ARTECLAB Bolivia · GeoServer · PostGIS · Flutter · Webmapping</div>
+      <div class="inst-links">
+        <a href="https://danielquisbert.com" target="_blank" class="inst-link">danielquisbert.com ↗</a>
+        <a href="https://geoserver.danielquisbert.com" target="_blank" class="inst-link">GeoServer ↗</a>
+        <a href="https://fluttergis.danielquisbert.com" target="_blank" class="inst-link">Flutter+GIS ↗</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-copy">
+    © <span class="auto-year"></span>
+    <a href="https://danielquisbert.com" target="_blank">Daniel Quisbert</a>
+    · ARTECLAB Bolivia
+  </span>
+  <span class="footer-right">GeoServer 3.0.0</span>
+</footer>
+
+<script>
+(function () {
+  const KEY = 'arteclab-theme';
+  function apply(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(KEY, t);
+    const btn = document.getElementById('themeBtn');
+    btn.querySelector('.t-icon').textContent  = t === 'dark' ? '☀' : '◐';
+    btn.querySelector('.t-label').textContent = t === 'dark' ? 'Claro' : 'Oscuro';
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    const saved = localStorage.getItem(KEY);
+    apply(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      apply(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const y = new Date().getFullYear();
+    document.querySelectorAll('.auto-year').forEach(function (el) { el.textContent = y; });
+  });
+})();
+</script>
+</body>
+</html>

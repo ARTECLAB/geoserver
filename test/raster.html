@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · Clase 4 · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area"><span class="logo-badge">ARTECLAB</span><span class="logo-name">GeoServer 3</span></div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema"><span class="toggle-icon" aria-hidden="true">◐</span><span class="toggle-label">Oscuro</span></button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/><path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/></svg>Módulo 3 · Clase 4</span>
+      <h1 class="course-title">Publicación de Capas:<br>Vectoriales y Raster</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Primer intento correcto: puntaje completo. Segundo intento: la mitad.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+  <div id="quizContainer"></div>
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>Ver mi resultado final →</button>
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle"><span class="result-score-num" id="resFinalScore">0</span><span class="result-score-of">/ 100</span></div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc" id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct"><span class="result-stat-num" id="resCorrect">0</span><span class="result-stat-label">Correctas a la primera</span></div>
+        <div class="result-stat rs-second"><span class="result-stat-num" id="resSecond">0</span><span class="result-stat-label">Correctas en 2.º intento</span></div>
+        <div class="result-stat rs-wrong"><span class="result-stat-num" id="resWrong">0</span><span class="result-stat-label">Sin responder bien</span></div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+<footer class="site-footer"><a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a> &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0</footer>
+<script>
+window.QUIZ_QUESTIONS = [
+  {id:1,type:"Opción múltiple",points:8,text:"¿Cuál es el orden correcto para publicar una capa nueva en GeoServer?",options:["Layer → Store → Workspace","Workspace → Store → Layer (publicar)","Style → Layer → Workspace","Store → Workspace → Layer"],correct:1,hint:"Necesitas el contenedor antes que el origen, y el origen antes que la capa. ¿Cuál es el contenedor de mayor nivel?",explanation:"El flujo correcto es: 1) Crear el Workspace (contenedor del proyecto), 2) Crear el Store (fuente de datos: GeoPackage, PostGIS, GeoTIFF), 3) Publicar la Layer desde ese Store. Sin Workspace no hay Store, sin Store no hay Layer."},
+  {id:2,type:"Verdadero / Falso",points:8,text:"En GeoServer, el nombre interno de una capa y su título son el mismo campo y no pueden diferir.",options:["Verdadero — nombre y título siempre deben ser idénticos","Falso — el nombre es el identificador técnico y el título es el texto descriptivo para humanos"],correct:1,hint:"¿Conviene que el identificador técnico (usado en URLs y código) sea lo mismo que el texto legible para usuarios finales?",explanation:"FALSO. El nombre (name) es el identificador técnico que aparece en URLs y peticiones OGC, por ejemplo 'municipios_v2'. El título (title) es el texto descriptivo para usuarios: 'Municipios del Estado Plurinacional'. Pueden ser completamente diferentes y se recomienda que lo sean para mayor claridad."},
+  {id:3,type:"Opción múltiple",points:8,text:"¿Qué es el Bounding Box 'Nativo' de una capa en GeoServer?",options:["El cuadro delimitador calculado en el sistema de coordenadas original de los datos","El cuadro delimitador siempre en EPSG:4326","El tamaño en píxeles de la imagen de vista previa","El área máxima que puede solicitar un cliente WMS"],correct:0,hint:"'Nativo' hace referencia al sistema de coordenadas original del dato, antes de cualquier reproyección.",explanation:"El Bounding Box Nativo es la extensión geográfica de los datos en su sistema de coordenadas original (el CRS nativo de los datos). GeoServer también calcula el Lat/Lon Bounding Box en EPSG:4326 para interoperabilidad. Ambos pueden calcularse automáticamente con el botón 'Compute from data'."},
+  {id:4,type:"Opción múltiple",points:8,text:"¿Para qué sirve un Layer Group en GeoServer?",options:["Para agrupar varios workspaces en una sola vista administrativa","Para combinar múltiples capas en un único servicio WMS con un solo nombre","Para crear copias de seguridad de grupos de capas relacionadas","Para aplicar el mismo estilo a todas las capas de un workspace"],correct:1,hint:"Si un cliente quiere ver un mapa base completo (departamentos + vías + ciudades) con una sola petición WMS, ¿qué usarías?",explanation:"Un Layer Group permite agrupar múltiples capas en un único 'mapa virtual' con un solo nombre. El cliente WMS hace una sola petición (LAYERS=nombre_del_grupo) y GeoServer renderiza todas las capas incluidas en el orden definido. Ideal para mapas base compuestos."},
+  {id:5,type:"Verdadero / Falso",points:8,text:"Al publicar un GeoTIFF en GeoServer, es posible configurar el valor NoData para que los píxeles sin dato aparezcan transparentes.",options:["Verdadero — GeoServer permite configurar el valor NoData en la pestaña de publicación de la capa raster","Falso — el NoData solo puede configurarse editando el archivo GeoTIFF directamente con GDAL"],correct:0,hint:"¿Tiene sentido que GeoServer ofrezca configuración de NoData si solo pudiera leerse del archivo? Piensa en la flexibilidad del servidor.",explanation:"VERDADERO. En la pestaña de publicación de una capa raster, GeoServer permite especificar los valores NoData (puede ser -9999, 0, 255, etc.). Esto hace que esos píxeles se rendericen como transparentes en el WMS. También puede leerlo del archivo si ya está definido en los metadatos del GeoTIFF."},
+  {id:6,type:"Opción múltiple",points:8,text:"¿Qué tipo de Store usarías para publicar múltiples Shapefiles de una misma carpeta en GeoServer?",options:["GeoTIFF Store","PostGIS Store","Directory of Spatial Files (Shapefiles) Store","WMS Store (cascada)"],correct:2,hint:"Existe un tipo de Store específico para leer todos los SHP de un directorio como capas individuales automáticamente.",explanation:"El Store 'Directory of Spatial Files (Shapefiles)' apunta a una carpeta entera y publica automáticamente cada .shp como una capa disponible. Es más eficiente que crear un Store por cada Shapefile individual. GeoServer detecta todos los archivos .shp de la carpeta y los lista para publicar."},
+  {id:7,type:"Verdadero / Falso",points:8,text:"Un Store de tipo 'PostGIS' en GeoServer puede publicar tanto tablas como vistas SQL de la base de datos.",options:["Verdadero — GeoServer puede publicar tablas, vistas y vistas materializadas de PostGIS","Falso — solo se pueden publicar tablas físicas, no vistas SQL"],correct:0,hint:"Si GeoServer puede leer cualquier conjunto de filas con geometría, ¿importa que el origen sea una tabla o una vista?",explanation:"VERDADERO. GeoServer trata las vistas SQL exactamente igual que las tablas físicas: ambas aparecen en la lista de capas disponibles del Store PostGIS. Esto es muy poderoso: puedes crear vistas que unan datos, filtren registros o calculen campos derivados, y publicarlas directamente como capas WMS/WFS."},
+  {id:8,type:"Opción múltiple",points:8,text:"¿Qué novedad introduce GeoServer 3 en el Layer Preview respecto a versiones anteriores?",options:["Usa Leaflet en lugar de OpenLayers para las vistas previas","Usa OpenLayers 10.8 con soporte de pantalla completa y mejoras de UX","Ya no incluye Layer Preview; se eliminó en GeoServer 3","El preview ahora requiere autenticación obligatoria"],correct:1,hint:"GeoServer 3 actualizó la librería de mapas del preview a una versión mucho más reciente.",explanation:"GeoServer 3 actualiza el Layer Preview a OpenLayers 10.8.0, con mejoras de UX como modo pantalla completa, mejor visualización de keywords en formato tabla y navegación de teclado en el explorador de archivos. Es una mejora significativa respecto a las versiones antiguas de OpenLayers usadas en GeoServer 2.x."},
+  {id:9,type:"Opción múltiple",points:8,text:"¿Qué información debes rellenar obligatoriamente en la pestaña 'Data' al publicar una capa?",options:["Solo el nombre de la capa — el resto es opcional","Nombre, título, CRS nativo y Bounding Box como mínimo para que la capa funcione correctamente","Solo el estilo por defecto — el nombre se genera automáticamente","El número de features y el tamaño del archivo"],correct:1,hint:"Piensa en qué información mínima necesita un cliente WMS para hacer una petición válida a esa capa.",explanation:"Los campos mínimos obligatorios son: nombre técnico (Name), título legible (Title), sistema de coordenadas nativo (Native CRS) y el Bounding Box (puede calcularse automáticamente). Sin CRS y BBox, GeoServer no puede responder correctamente a las peticiones GetMap de los clientes."},
+  {id:10,type:"Verdadero / Falso",points:8,text:"El Layer Importer de GeoServer permite publicar múltiples capas en una sola operación desde una carpeta o base de datos.",options:["Verdadero — el Layer Importer es una extensión diseñada para importación masiva de datos","Falso — GeoServer no tiene herramienta de importación masiva"],correct:0,hint:"GeoServer tiene una extensión llamada 'Importer' disponible como plugin adicional. ¿Para qué serviría?",explanation:"VERDADERO. El Layer Importer (extensión gs-importer) permite cargar y publicar múltiples archivos o tablas de base de datos en una sola operación con interfaz gráfica o mediante API REST. Detecta automáticamente los tipos de dato, CRS y permite ajustes antes de publicar en lote."},
+  {id:11,type:"Opción múltiple",points:10,text:"¿Cuál es la diferencia entre un Store de tipo 'GeoPackage' y uno de tipo 'Directory of Shapefiles'?",options:["No hay diferencia práctica, ambos sirven para publicar datos vectoriales","GeoPackage almacena múltiples capas en un solo archivo SQLite; el directorio de SHP gestiona múltiples archivos .shp separados","GeoPackage es solo para datos raster; el directorio SHP es para datos vectoriales","El directorio de SHP es más moderno y reemplaza al GeoPackage"],correct:1,hint:"Piensa en la arquitectura de cada formato: ¿cómo se organizan físicamente los datos en cada caso?",explanation:"La diferencia está en el contenedor: GeoPackage es un único archivo SQLite que contiene múltiples capas (vectoriales y/o raster), metadatos y estilos. El Store de directorio de SHP gestiona una carpeta con múltiples archivos .shp independientes, cada uno con sus archivos auxiliares (.dbf, .shx, .prj). GeoPackage es más moderno y organizado."},
+  {id:12,type:"Opción múltiple",points:10,text:"¿Qué petición WMS debes hacer para obtener los atributos de un feature al hacer clic en el mapa?",options:["GetMap con el parámetro CLICK=true","GetFeatureInfo con las coordenadas del clic en píxeles (I y J)","GetCapabilities con el parámetro FEATURE=true","WFS GetFeature con las coordenadas del clic"],correct:1,hint:"Hay una operación WMS específica para obtener información sobre los features que aparecen en un punto concreto del mapa.",explanation:"GetFeatureInfo es la operación WMS que devuelve información de los features visibles en un punto del mapa. Se necesita la imagen de referencia (mismos parámetros que el GetMap) más los parámetros I y J (coordenadas en píxeles del clic) y QUERY_LAYERS (capas a consultar). El cliente OpenLayers o Leaflet construye esta URL automáticamente al hacer clic."}
+];
+</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>

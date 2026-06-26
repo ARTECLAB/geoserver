@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 7 — Servicios OGC, CQL y Seguridad · ARTECLAB</title>
+<link rel="stylesheet" href="assets/slides.css"></head>
+<body><div class="deck">
+<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 7</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 13</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
+<div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+<div class="slides-wrap">
+
+    <div class="slide slide-cover"><div class="cover-grid"></div>
+    <div class="cover-tag"><span class="cover-dot"></span> Módulo 6 · Clase 7 · <span class="auto-year"></span></div>
+    <h1 class="cover-title">Servicios OGC,<br><em>CQL y Seguridad</em></h1>
+    <p class="cover-sub">WMS · WFS · WMTS · Filtros espaciales · Control de acceso</p>
+    <div class="cover-pills"><span class="cover-pill">⏱ 2 horas</span><span class="cover-pill">🔒 Seguridad</span><span class="cover-pill">👨‍💻 Daniel Quisbert</span></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Al finalizar esta clase</div><div class="slide-title">¿Qué vamos a lograr hoy?</div><div class="slide-body"><div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Construir peticiones WMS, WFS y WMTS manualmente</div><div class="step-desc">Entender cada parámetro — GetCapabilities, GetMap, GetFeature.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Aplicar filtros CQL espaciales y de atributos</div><div class="step-desc">DWITHIN, INTERSECTS, CONTAINS y combinaciones con AND/OR.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Configurar GeoWebCache para WMTS</div><div class="step-desc">Pre-generar teselas y acelerar el rendimiento del mapa base.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Crear usuarios, roles y restricciones por capa</div><div class="step-desc">Quién puede ver qué — control granular por workspace y layer.</div></div></div>
+    </div><div class="instructor-strip"><div class="is-avatar">DQ</div><div><div class="is-name">Daniel Quisbert</div><div class="is-role">ARTECLAB · danielquisbert.com</div></div></div></div></div>
+
+    <div class="slide slide-section"><div class="section-num">Sección 1 de 4</div><div class="section-title">WMS · WFS · WMTS</div><div class="section-desc">Peticiones reales en el navegador</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Servicios OGC</div><div class="slide-title">Las tres operaciones más usadas</div><div class="slide-body">
+    <div class="cards cards-3">
+    <div class="card card-gold"><div class="card-title">WMS GetMap</div><div class="card-desc">Devuelve imagen PNG del mapa renderizado con el estilo configurado.</div><div style="margin-top:8px;font-size:11px;color:var(--muted)">Parámetros clave:<br>LAYERS, BBOX, CRS, WIDTH, HEIGHT, FORMAT, STYLES, CQL_FILTER</div></div>
+    <div class="card card-blue"><div class="card-title">WFS GetFeature</div><div class="card-desc">Devuelve los datos vectoriales en GeoJSON, GML o CSV.</div><div style="margin-top:8px;font-size:11px;color:var(--muted)">Parámetros clave:<br>TYPENAMES, CQL_FILTER, COUNT, OUTPUTFORMAT, STARTINDEX</div></div>
+    <div class="card card-green"><div class="card-title">WMTS GetTile</div><div class="card-desc">Devuelve una tesela pre-generada de la caché de GeoWebCache.</div><div style="margin-top:8px;font-size:11px;color:var(--muted)">Parámetros clave:<br>LAYER, TILEMATRIXSET, TILEMATRIX, TILEROW, TILECOL</div></div>
+    </div>
+    <div class="callout callout-info" style="margin-top:12px;"><span class="callout-icon">🆕</span><div class="callout-body"><div class="callout-title">GeoServer 3: cambio en CORS</div>La configuración CORS ya no va en web.xml (Jetty 12). Debe configurarse en el archivo de contexto de Tomcat o en la configuración del módulo CORS de Jetty.</div></div>
+    </div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Práctica</div><div class="slide-title">Peticiones OGC reales — cópielas y pruébelas</div><div class="slide-body">
+    <div class="code-label">WMS GetMap con filtro CQL</div>
+    <div class="code-block">http://localhost:8080/geoserver/geoserver3_curso/wms?
+  SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap
+  &LAYERS=<span class="n">geoserver3_curso:municipios</span>
+  &CRS=EPSG:4326&BBOX=-69.65,-22.90,-57.45,-9.67
+  &WIDTH=800&HEIGHT=600&FORMAT=<span class="s">image/png</span>&TRANSPARENT=true
+  &CQL_FILTER=<span class="k">departamento='LA PAZ'</span></div>
+
+    <div class="code-label" style="margin-top:12px;">WFS GetFeature — descarga GeoJSON</div>
+    <div class="code-block">http://localhost:8080/geoserver/geoserver3_curso/wfs?
+  SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature
+  &TYPENAMES=<span class="n">geoserver3_curso:municipios</span>
+  &CQL_FILTER=<span class="k">departamento='BENI'</span>
+  &OUTPUTFORMAT=<span class="s">application/json</span>&COUNT=50</div>
+    </div></div>
+
+    <div class="slide slide-section"><div class="section-num">Sección 2 de 4</div><div class="section-title">Filtros CQL</div><div class="section-desc">Consultas espaciales y de atributos en la URL</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">CQL — Common Query Language</div><div class="slide-title">Filtros que todo GIS profesional debe dominar</div><div class="slide-body">
+    <div class="two-col">
+    <div>
+    <div class="code-label">Filtros de atributos</div>
+    <div class="code-block"><span class="c"># Igualdad</span>
+departamento = <span class="s">'SANTA CRUZ'</span>
+
+<span class="c"># Rango numérico</span>
+superficie_km2 BETWEEN <span class="n">1000</span> AND <span class="n">5000</span>
+
+<span class="c"># Lista de valores</span>
+departamento IN (<span class="s">'LA PAZ'</span>, <span class="s">'ORURO'</span>, <span class="s">'POTOSI'</span>)
+
+<span class="c"># Combinación lógica</span>
+departamento = <span class="s">'LA PAZ'</span> AND poblacion > <span class="n">50000</span></div>
+    </div>
+    <div>
+    <div class="code-label">Filtros espaciales</div>
+    <div class="code-block"><span class="c"># Radio de 100km desde un punto</span>
+DWITHIN(geom, POINT(<span class="n">-68.15 -16.50</span>), <span class="n">100000</span>, meters)
+
+<span class="c"># Intersección con polígono</span>
+INTERSECTS(geom, POLYGON((-70 -14,-66 -14,-66 -18,-70 -18,-70 -14)))
+
+<span class="c"># Combinado: atributos + espacio</span>
+departamento = <span class="s">'LA PAZ'</span> AND INTERSECTS(geom, POLYGON(...))</div>
+    <div class="callout callout-ok" style="margin-top:10px;"><span class="callout-icon">✓</span><div class="callout-body">CQL se ejecuta en el servidor (PostGIS si es el origen). El cliente solo recibe los features que cumplen la condición.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-section"><div class="section-num">Sección 3 de 4</div><div class="section-title">GeoWebCache<br>y WMTS</div><div class="section-desc">Velocidad extrema para mapas base</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Rendimiento</div><div class="slide-title">WMS vs WMTS — la diferencia de velocidad</div><div class="slide-body">
+    <div class="two-col">
+    <div>
+    <div class="img-placeholder"><div class="ph-icon">⚡</div><div class="ph-name">wms-vs-wmts-speed.png</div><div class="ph-label">Diagrama comparativo: WMS genera vs WMTS sirve desde caché</div></div>
+    </div>
+    <div><div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Activar caché para la capa</div><div class="step-desc">GeoWebCache → Caching Defaults → activar la capa del mapa base.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Seed — generar teselas anticipadas</div><div class="step-desc">Seleccionar zoom 0-12, BBox del área de estudio, formato PNG.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Truncar cuando los datos cambian</div><div class="step-desc">GeoWebCache → Tile Layers → Truncate. Regenera solo la zona afectada.</div></div></div>
+    </div>
+    <div class="callout callout-info" style="margin-top:10px;"><span class="callout-icon">⏱</span><div class="callout-body">WMS: 200-2000ms por imagen. WMTS desde caché: 5-20ms. Para un mapa base con miles de usuarios la diferencia es enorme.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-section"><div class="section-num">Sección 4 de 4</div><div class="section-title">Seguridad:<br>usuarios y roles</div><div class="section-desc">Quién puede ver qué en GeoServer</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Control de acceso</div><div class="slide-title">El modelo de seguridad de GeoServer</div><div class="slide-body">
+    <div class="two-col">
+    <div>
+    <div class="hierarchy" style="margin-bottom:12px;">
+    <div class="hier-item hier-1"><span class="hier-icon">👤</span><div><div class="hier-name">Usuarios</div><div style="font-size:11px;color:var(--muted)">admin_dq · editor_gis · viewer_publico</div></div></div>
+    <div class="hier-item hier-2"><span class="hier-icon">🎭</span><div><div class="hier-name">Roles</div><div style="font-size:11px;color:var(--muted)">ADMIN · EDITOR · AUTHENTICATED · ROLE_ANONYMOUS</div></div></div>
+    <div class="hier-item hier-3"><span class="hier-icon">🔐</span><div><div class="hier-name">Reglas de acceso</div><div style="font-size:11px;color:var(--muted)">Por workspace · Por capa · Por servicio</div></div></div>
+    </div>
+    <div class="callout callout-warn"><span class="callout-icon">🆕</span><div class="callout-body"><div class="callout-title">GeoServer 3: OIDC reemplaza Keycloak</div>La extensión OIDC soporta OAuth2 estándar: Keycloak, Auth0, Google, Azure AD. Más flexible que la extensión específica de Keycloak de GS2.</div></div>
+    </div>
+    <div>
+    <div class="code-label">Reglas típicas para un proyecto</div>
+    <div class="code-block"><span class="c">Workspace público (todos pueden ver WMS):</span>
+geoserver3_curso.*.r = ROLE_ANONYMOUS
+
+<span class="c">Capa privada (solo autenticados):</span>
+geoserver3_curso.datos_privados.r = AUTHENTICATED
+
+<span class="c">Solo admin puede escribir (WFS-T):</span>
+geoserver3_curso.*.w = ADMIN</div>
+    </div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Resumen</div><div class="slide-title">Lo que aprendiste hoy</div><div class="slide-body">
+    <div class="two-col">
+    <ul class="slide-list">
+    <li>WMS devuelve imágenes, WFS devuelve datos, WMTS devuelve teselas pre-generadas</li>
+    <li>TRANSPARENT=true + FORMAT=image/png permite superponer capas WMS en un visor</li>
+    <li>CQL combina filtros de atributos y espaciales en la URL sin código adicional</li>
+    <li>DWITHIN(geom, POINT(x y), distancia, meters) selecciona features en un radio</li>
+    <li>GeoWebCache pre-genera teselas: 5-20ms de respuesta vs 200-2000ms de WMS dinámico</li>
+    <li>En GS3, CORS no va en web.xml — cambio importante al migrar desde GS2</li>
+    </ul>
+    <div><div class="callout callout-info"><span class="callout-icon">🏆</span><div class="callout-body"><div class="callout-title">Próxima y última clase</div>Proyecto Final: IDE Municipal completa. Usamos todo lo que aprendimos en las 7 clases anteriores.</div></div></div>
+    </div></div></div>
+
+    <div class="slide slide-cover"><div class="cover-grid"></div>
+    <div class="cover-tag"><span class="cover-dot"></span> Fin de la Clase 7</div>
+    <h1 class="cover-title">Servicios configurados.<br><em>Datos protegidos.</em></h1>
+    <p class="cover-sub">Última clase: construimos la IDE Municipal completa con OpenLayers.</p>
+    <div style="max-width:460px;width:100%;position:relative;">
+    <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario — Clase 7: OGC + Seguridad</div><div class="quiz-cta-sub">12 preguntas · 2 intentos</div></div><a href="../questions/ogcapi.html" target="_blank">Ir al cuestionario →</a></div></div>
+    <div class="cover-pills" style="margin-top:20px;"><span class="cover-pill">🗓 Última clase: Proyecto Final</span><span class="cover-pill">🏆 ¡Casi terminamos!</span></div>
+    </div>
+
+</div>
+<div class="navbar"><button class="nav-btn" id="btnPrev">← Anterior</button>
+<div class="nav-dots">
+      <button class="nav-dot" title="Slide 1"></button>
+      <button class="nav-dot" title="Slide 2"></button>
+      <button class="nav-dot" title="Slide 3"></button>
+      <button class="nav-dot" title="Slide 4"></button>
+      <button class="nav-dot" title="Slide 5"></button>
+      <button class="nav-dot" title="Slide 6"></button>
+      <button class="nav-dot" title="Slide 7"></button>
+      <button class="nav-dot" title="Slide 8"></button>
+      <button class="nav-dot" title="Slide 9"></button>
+      <button class="nav-dot" title="Slide 10"></button>
+      <button class="nav-dot" title="Slide 11"></button>
+      <button class="nav-dot" title="Slide 12"></button>
+      <button class="nav-dot" title="Slide 13"></button>
+    </div>
+<button class="nav-btn" id="btnNext">Siguiente →</button></div>
+</div><script src="assets/slides.js"></script></body></html>

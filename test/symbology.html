@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · Clase 5 · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area"><span class="logo-badge">ARTECLAB</span><span class="logo-name">GeoServer 3</span></div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema"><span class="toggle-icon" aria-hidden="true">◐</span><span class="toggle-label">Oscuro</span></button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/><path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/></svg>Módulo 4 · Clase 5</span>
+      <h1 class="course-title">Estilos con SLD y CSS:<br>Simbología Cartográfica</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Primer intento correcto: puntaje completo. Segundo intento: la mitad.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+  <div id="quizContainer"></div>
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>Ver mi resultado final →</button>
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle"><span class="result-score-num" id="resFinalScore">0</span><span class="result-score-of">/ 100</span></div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc" id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct"><span class="result-stat-num" id="resCorrect">0</span><span class="result-stat-label">Correctas a la primera</span></div>
+        <div class="result-stat rs-second"><span class="result-stat-num" id="resSecond">0</span><span class="result-stat-label">Correctas en 2.º intento</span></div>
+        <div class="result-stat rs-wrong"><span class="result-stat-num" id="resWrong">0</span><span class="result-stat-label">Sin responder bien</span></div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+<footer class="site-footer"><a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a> &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0</footer>
+<script>
+window.QUIZ_QUESTIONS = [
+  {id:1,type:"Opción múltiple",points:8,text:"¿Qué significa SLD en el contexto de GeoServer?",options:["Spatial Layer Definition","Styled Layer Descriptor","Specific Layer Drawing","Standard Layer Display"],correct:1,hint:"Es un estándar OGC que 'describe' cómo se 'estilan' las 'capas'. Las siglas lo dicen literalmente.",explanation:"SLD significa Styled Layer Descriptor. Es un estándar OGC basado en XML que describe cómo deben visualizarse (renderizarse) las capas geoespaciales: colores, bordes, rellenos, etiquetas, escalas de visualización, filtros por atributo, etc."},
+  {id:2,type:"Opción múltiple",points:8,text:"¿Cuál es la jerarquía correcta de elementos dentro de un documento SLD?",options:["Rule → FeatureTypeStyle → Symbolizer","FeatureTypeStyle → Rule → Symbolizer","Symbolizer → Rule → FeatureTypeStyle","UserStyle → Symbolizer → Rule"],correct:1,hint:"El estilo contiene reglas. Cada regla contiene simbolizadores. ¿Cuál es el orden lógico de mayor a menor contenedor?",explanation:"La jerarquía SLD es: UserStyle → FeatureTypeStyle → Rule → Symbolizer. El FeatureTypeStyle agrupa reglas. Cada Rule puede tener un filtro (condición) y contiene uno o más Symbolizers que definen el aspecto visual (PolygonSymbolizer, LineSymbolizer, PointSymbolizer, TextSymbolizer)."},
+  {id:3,type:"Verdadero / Falso",points:8,text:"En SLD, la escala dependiente permite mostrar u ocultar una regla según el nivel de zoom del mapa.",options:["Verdadero — MinScaleDenominator y MaxScaleDenominator controlan la visibilidad por escala","Falso — en SLD los estilos siempre se aplican independientemente del nivel de zoom"],correct:0,hint:"¿Tiene sentido mostrar etiquetas de nombres de calles cuando el mapa muestra todo un continente? Los SLD permiten evitar eso.",explanation:"VERDADERO. Dentro de una Rule en SLD se pueden definir MinScaleDenominator y MaxScaleDenominator. Por ejemplo, MinScaleDenominator=1 y MaxScaleDenominator=500000 significa que la regla solo se aplica cuando el denominador de escala está entre 1 y 500000 (zooms cercanos). Esto mejora el rendimiento y la legibilidad."},
+  {id:4,type:"Opción múltiple",points:8,text:"¿Qué tipo de Symbolizer en SLD se usa para agregar etiquetas de texto a los features?",options:["LabelSymbolizer","TextSymbolizer","AnnotationSymbolizer","FontSymbolizer"],correct:1,hint:"El tipo de Symbolizer se nombra según el elemento visual que produce. Para texto en SLD el nombre es directo.",explanation:"TextSymbolizer es el Symbolizer que controla las etiquetas de texto en SLD. Define la fuente (Label), estilo tipográfico (Font), posicionamiento (LabelPlacement), halo (Halo para mejorar legibilidad), y color del relleno del texto. Es el equivalente a los 'Labels' de QGIS."},
+  {id:5,type:"Opción múltiple",points:8,text:"¿Cuál es la principal ventaja del estilo CSS de GeoServer sobre el formato SLD estándar?",options:["El CSS es un estándar OGC oficial, mientras que SLD es propietario de GeoServer","El CSS es más conciso y legible: equivale a 5-10 líneas de CSS por cada 30-50 líneas de SLD","El CSS permite estilos animados que SLD no puede producir","El CSS tiene mejor rendimiento de renderizado que SLD"],correct:1,hint:"Compara un bloque SLD típico con el equivalente en CSS. ¿Cuál es más fácil de leer y escribir?",explanation:"GeoServer CSS (basado en el lenguaje de estilos MapCSS) es mucho más conciso que SLD: lo que en SLD requiere 30-50 líneas de XML, en CSS puede expresarse en 5-10 líneas. CSS es más fácil de escribir, leer y mantener. Internamente GeoServer convierte el CSS a SLD para renderizar."},
+  {id:6,type:"Verdadero / Falso",points:8,text:"En un SLD, un único FeatureTypeStyle puede contener múltiples Rules, cada una con filtros diferentes para distintos valores de atributo.",options:["Verdadero — esto permite crear simbología categorizada o clasificada dentro de un mismo estilo","Falso — cada valor diferente de atributo requiere un archivo SLD separado"],correct:0,hint:"¿Cómo funcionaría la simbología por categoría (ej: colorear cada departamento diferente) si no pudieras tener múltiples reglas en un SLD?",explanation:"VERDADERO. Un FeatureTypeStyle puede contener tantas Rules como necesites. Cada Rule puede tener un filtro (ogc:Filter) que selecciona qué features aplica esa regla. Así se implementa la simbología categorizada: una Rule por cada categoría, con el filtro y Symbolizer correspondiente."},
+  {id:7,type:"Opción múltiple",points:8,text:"¿Para qué sirve el elemento 'Halo' dentro de un TextSymbolizer en SLD?",options:["Crea un resplandor brillante alrededor de la etiqueta para efectos visuales","Genera un fondo de color contrastante alrededor del texto para mejorar su legibilidad","Define el área de exclusión para evitar que se superpongan dos etiquetas","Controla el tamaño de la fuente en píxeles"],correct:1,hint:"¿Qué técnica cartográfica se usa para hacer legibles las etiquetas sobre fondos de colores variados o imágenes?",explanation:"El Halo en SLD crea un contorno de color sólido alrededor de cada carácter del texto, normalmente blanco o de color muy contrastante. Esto hace que las etiquetas sean legibles incluso sobre fondos complejos o imágenes de satélite. Se define con HaloRadius (tamaño) y Fill (color del halo)."},
+  {id:8,type:"Opción múltiple",points:8,text:"¿Qué tipo de ColorMap en SLD crea una rampa continua de colores entre valores mínimo y máximo?",options:["type='intervals'","type='values'","type='ramp'","type='gradient'"],correct:2,hint:"Piensa en el tipo que produce una transición suave, como un gradiente entre colores para representar elevación o temperatura.",explanation:"ColorMap type='ramp' crea una interpolación lineal continua entre los ColorMapEntry definidos. Por ejemplo, verde (0m) → marrón (3000m) → blanco (6000m) produce un gradiente suave. 'intervals' crea bandas de color discretas sin interpolación, y 'values' asigna un color exacto solo a valores específicos."},
+  {id:9,type:"Verdadero / Falso",points:8,text:"Es posible exportar un estilo de QGIS en formato QML e importarlo directamente en GeoServer sin ninguna conversión.",options:["Verdadero — GeoServer soporta el formato QML de QGIS nativamente","Falso — QGIS exporta en QML o SLD; GeoServer necesita el formato SLD, no QML"],correct:1,hint:"¿Qué formato de estilo exporta QGIS que sea compatible con estándares OGC? ¿Y qué formato usa GeoServer internamente?",explanation:"FALSO. GeoServer usa SLD (y CSS). QGIS puede exportar estilos en formato SLD (no solo QML): en QGIS, botón derecho en la capa → Propiedades → Simbología → Exportar → 'SLD'. Ese archivo SLD sí se puede importar directamente en GeoServer. El formato QML es propietario de QGIS y GeoServer no lo soporta."},
+  {id:10,type:"Opción múltiple",points:8,text:"¿Qué elemento SLD usa el filtro ogc:PropertyIsEqualTo para aplicar un estilo condicional?",options:["ColorMap","Rule","FeatureTypeStyle","Symbolizer"],correct:1,hint:"Los filtros condicionan cuándo se aplica un conjunto de simbolizadores. ¿En qué nivel de la jerarquía SLD vive esa condición?",explanation:"El filtro ogc:Filter (que puede contener ogc:PropertyIsEqualTo, ogc:PropertyIsGreaterThan, etc.) se coloca dentro de una Rule. Si un feature cumple la condición del filtro, se le aplican los Symbolizers de esa Rule. Si no cumple, la Rule no se aplica a ese feature."},
+  {id:11,type:"Verdadero / Falso",points:10,text:"En GeoServer se puede previsualizar en tiempo real cómo queda un estilo SLD o CSS mientras se edita, sin necesidad de guardar primero.",options:["Verdadero — el editor de estilos de GeoServer 3 tiene un preview en vivo integrado","Falso — siempre hay que guardar el estilo y luego ir al Layer Preview para verificarlo"],correct:0,hint:"Esta fue una de las mejoras de experiencia de usuario en versiones recientes de GeoServer. ¿El nuevo editor de estilos ofrece esta funcionalidad?",explanation:"VERDADERO. El editor de estilos de GeoServer (desde versiones recientes y mejorado en GS3) incluye un panel de vista previa en vivo: al editar el SLD o CSS, puedes ver el resultado visual actualizado sin necesidad de guardar primero. Esto acelera enormemente el proceso de diseño de estilos cartográficos."},
+  {id:12,type:"Opción múltiple",points:10,text:"¿Cuántas Rules como mínimo necesitas en un SLD para crear simbología categorizada de 9 categorías diferentes?",options:["1 Rule con 9 Symbolizers anidados","9 Rules, una por cada categoría con su propio filtro y Symbolizer","3 Rules con filtros compuestos OR","Solo 1 Rule con un ColorMap de 9 entradas"],correct:1,hint:"Cada categoría necesita su propia condición (filtro) y su propio símbolo. ¿Cuántas Rules hacen falta para 9 condiciones diferentes?",explanation:"Necesitas exactamente 9 Rules: una por cada categoría. Cada Rule tiene un ogc:Filter con ogc:PropertyIsEqualTo que filtra la categoría correspondiente, y su propio Symbolizer con el color o símbolo asignado. El ColorMap de 9 entradas es solo para datos raster continuos, no para categorías vectoriales."}
+];
+</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>

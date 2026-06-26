@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario · Clase 1 · GeoServer 3 · ARTECLAB</title>
+<link rel="stylesheet" href="assets/quiz.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area">
+      <span class="logo-badge">ARTECLAB</span>
+      <span class="logo-name">GeoServer 3</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+      <span class="toggle-icon" aria-hidden="true">◐</span>
+      <span class="toggle-label">Oscuro</span>
+    </button>
+  </div>
+  <div class="course-banner">
+    <div class="course-meta">
+      <span class="class-tag">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
+          <circle cx="4.5" cy="4.5" r="4" stroke="#C89B3C"/>
+          <path d="M4.5 2.5V4.5L6 6" stroke="#C89B3C" stroke-linecap="round"/>
+        </svg>
+        Módulo 1 · Clase 1
+      </span>
+      <h1 class="course-title">Fundamentos y Arquitectura<br>de GeoServer 3</h1>
+      <p class="course-subtitle">Cuestionario de práctica · 2 intentos por pregunta · Nivel intermedio</p>
+    </div>
+    <div class="quiz-stats">
+      <div class="stat-pill"><span class="stat-num">12</span><span class="stat-label">Preguntas</span></div>
+      <div class="stat-pill"><span class="stat-num">100</span><span class="stat-label">Puntos</span></div>
+      <div class="stat-pill"><span class="stat-num">2</span><span class="stat-label">Intentos</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+
+<main class="main-content">
+  <div class="intro-panel">
+    <h2>¿Cómo funciona este cuestionario?</h2>
+    <p>Cada pregunta tiene <strong>2 intentos</strong>. Si aciertas a la primera obtienes el puntaje completo. Si necesitas el segundo intento, obtienes la mitad. Al finalizar verás tu nota con retroalimentación detallada.</p>
+    <div class="intro-rules">
+      <span class="rule-chip"><span class="dot"></span>Primer intento: puntaje completo</span>
+      <span class="rule-chip"><span class="dot"></span>Segundo intento: mitad del puntaje</span>
+      <span class="rule-chip"><span class="dot"></span>Puedes reiniciar cuando quieras</span>
+    </div>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <button class="btn-submit-all" id="btnSubmit" onclick="submitQuiz()" disabled>
+    Ver mi resultado final →
+  </button>
+
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <div class="result-score-circle">
+        <span class="result-score-num" id="resFinalScore">0</span>
+        <span class="result-score-of">/ 100</span>
+      </div>
+      <div class="result-grade" id="resGrade">—</div>
+      <div class="result-desc"  id="resDesc">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-stats-grid">
+        <div class="result-stat rs-correct">
+          <span class="result-stat-num" id="resCorrect">0</span>
+          <span class="result-stat-label">Correctas a la primera</span>
+        </div>
+        <div class="result-stat rs-second">
+          <span class="result-stat-num" id="resSecond">0</span>
+          <span class="result-stat-label">Correctas en 2.º intento</span>
+        </div>
+        <div class="result-stat rs-wrong">
+          <span class="result-stat-num" id="resWrong">0</span>
+          <span class="result-stat-label">Sin responder bien</span>
+        </div>
+      </div>
+      <div class="breakdown-title">Detalle por pregunta</div>
+      <div id="breakdownList"></div>
+      <button class="btn-retry" onclick="retryQuiz()">Reiniciar cuestionario</button>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <a href="https://danielquisbert.com" target="_blank">danielquisbert.com</a>
+  &nbsp;·&nbsp; ARTECLAB <span class="footer-year"></span> &nbsp;·&nbsp; GeoServer 3.0.0
+</footer>
+
+<script>
+window.QUIZ_QUESTIONS = [
+  {
+    id:1, type:"Opción múltiple", points:8,
+    text:"¿Cuál es la función principal de GeoServer en un entorno GIS?",
+    options:[
+      "Editar y analizar datos geoespaciales en el escritorio",
+      "Publicar datos geoespaciales como servicios web accesibles desde internet",
+      "Almacenar datos en una base de datos relacional",
+      "Diseñar mapas para impresión en papel"
+    ],
+    correct:1,
+    hint:"Piensa en el propósito de un 'servidor': ¿para qué sirve servir datos a través de la web?",
+    explanation:"GeoServer es un servidor de mapas de código abierto que publica datos geoespaciales como servicios web OGC (WMS, WFS, WMTS) para que múltiples usuarios puedan consumirlos desde navegadores, aplicaciones móviles y SIG de escritorio."
+  },
+  {
+    id:2, type:"Opción múltiple", points:8,
+    text:"En la jerarquía de GeoServer, ¿cuál es el orden correcto de mayor a menor contenedor?",
+    options:[
+      "Layer → Store → Workspace",
+      "Store → Layer → Workspace",
+      "Workspace → Store → Layer",
+      "Workspace → Layer → Store"
+    ],
+    correct:2,
+    hint:"El Workspace es como una carpeta de proyecto. Dentro van los Stores (fuentes de datos). De cada Store salen Layers (capas publicables).",
+    explanation:"La jerarquía correcta es Workspace → Store → Layer. El Workspace es el contenedor/proyecto; el Store es la fuente de datos (archivo o base de datos); la Layer es la capa publicable que los clientes consumen."
+  },
+  {
+    id:3, type:"Verdadero / Falso", points:8,
+    text:"GeoServer 3.0 puede instalarse usando Tomcat 9 exactamente igual que GeoServer 2.x.",
+    options:[
+      "Verdadero — el proceso de instalación es idéntico en ambas versiones",
+      "Falso — GeoServer 3 requiere Tomcat 11 debido al cambio a Jakarta EE"
+    ],
+    correct:1,
+    hint:"GeoServer 3 migró de javax.servlet (Java EE) a jakarta.servlet (Jakarta EE). ¿Qué versión de Tomcat soporta Jakarta EE?",
+    explanation:"FALSO. GeoServer 3 migró a Jakarta EE (Servlet 6.1) y requiere Tomcat 11. Tomcat 9 usa el namespace 'javax.servlet', mientras que GeoServer 3 necesita 'jakarta.servlet'. Usar Tomcat 9 con GeoServer 3 produce errores al inicio."
+  },
+  {
+    id:4, type:"Opción múltiple", points:8,
+    text:"¿Qué versión mínima de Java requiere GeoServer 3.0.0?",
+    options:[
+      "Java 8 (LTS)",
+      "Java 11 (LTS)",
+      "Java 17 (LTS)",
+      "Java 21 (LTS)"
+    ],
+    correct:2,
+    hint:"GeoServer 3 adoptó Spring Framework 7, que tiene como requisito mínimo una versión LTS de Java posterior a la 11.",
+    explanation:"GeoServer 3 requiere Java 17 LTS como mínimo. La migración a Spring 7 y Jakarta EE exigió saltar a Java 17. Java 11 ya no es compatible con GeoServer 3."
+  },
+  {
+    id:5, type:"Opción múltiple", points:8,
+    text:"¿Qué es el documento GetCapabilities en el protocolo WMS?",
+    options:[
+      "El archivo de configuración principal de GeoServer",
+      "Un documento XML que describe los servicios, capas y proyecciones disponibles en el servidor",
+      "La imagen PNG que devuelve el servidor al hacer un GetMap",
+      "El log de errores del servidor Tomcat"
+    ],
+    correct:1,
+    hint:"Su nombre lo dice todo: describe las 'capacidades' del servidor. Es lo primero que consulta cualquier cliente GIS al conectarse.",
+    explanation:"GetCapabilities devuelve un documento XML con todo lo que ofrece el servidor: versiones soportadas, capas disponibles, sistemas de coordenadas (CRS), formatos de imagen disponibles, y más. Es el 'menú' del servicio WMS."
+  },
+  {
+    id:6, type:"Verdadero / Falso", points:8,
+    text:"GeoServer puede servir simultáneamente WMS (imágenes de mapa) y WFS (datos vectoriales descargables) desde la misma capa.",
+    options:[
+      "Verdadero — WMS y WFS son dos vistas diferentes del mismo dato",
+      "Falso — cada capa solo puede servir un tipo de servicio OGC"
+    ],
+    correct:0,
+    hint:"Al publicar una capa en GeoServer aparece una pestaña 'Publishing' donde puedes activar o desactivar servicios. ¿Puedes habilitar más de uno?",
+    explanation:"VERDADERO. GeoServer puede publicar la misma capa como WMS (imagen renderizada), WFS (datos vectoriales descargables en GeoJSON, GML, etc.) y WMTS (teselas en caché) al mismo tiempo. Se decide por capa cuáles servicios habilitar."
+  },
+  {
+    id:7, type:"Opción múltiple", points:8,
+    text:"¿Cuál de las siguientes NO es una novedad introducida en GeoServer 3.0 respecto a la versión 2.x?",
+    options:[
+      "Migración a Spring Framework 7",
+      "Nuevo motor de procesamiento de imágenes (ImageN reemplaza JAI)",
+      "Soporte para Java 8 como versión mínima",
+      "Interfaz administrativa rediseñada con nueva experiencia de usuario"
+    ],
+    correct:2,
+    hint:"GeoServer 3 eleva los requisitos mínimos de Java, no los baja. ¿Cuál opción va en la dirección contraria?",
+    explanation:"GeoServer 3 ELEVÓ el requisito mínimo de Java a la versión 17. La opción 'soporte para Java 8' es incorrecta. Los demás cambios (Spring 7, ImageN, nueva UI) sí son reales en GeoServer 3."
+  },
+  {
+    id:8, type:"Opción múltiple", points:8,
+    text:"¿En qué sistema de coordenadas se recomienda almacenar datos para publicación web general con servicios OGC?",
+    options:[
+      "EPSG:32720 (UTM Zona 20S) — para mediciones métricas precisas",
+      "EPSG:4326 (WGS84 geográfico) — estándar para intercambio de datos y servicios OGC",
+      "EPSG:24892 (PSAD56) — sistema local histórico",
+      "EPSG:3857 (Web Mercator) — solo para visualización en navegadores"
+    ],
+    correct:1,
+    hint:"Los estándares OGC (WMS, WFS) y la mayoría de los portales de datos abiertos usan coordenadas geográficas en el sistema más universal.",
+    explanation:"EPSG:4326 (WGS84) es el sistema estándar para almacenamiento e intercambio de datos geoespaciales y servicios OGC. EPSG:3857 se usa en visualización web y EPSG:32720 para cálculos métricos, pero para publicación general: EPSG:4326."
+  },
+  {
+    id:9, type:"Verdadero / Falso", points:8,
+    text:"En GeoServer 3, la extensión de base de datos H2 fue eliminada y ya no está disponible.",
+    options:[
+      "Verdadero — H2 fue eliminado en GeoServer 3.0 y debe migrarse a PostGIS o GeoPackage",
+      "Falso — H2 sigue disponible como extensión opcional en GeoServer 3"
+    ],
+    correct:0,
+    hint:"Uno de los cambios de arquitectura de GeoServer 3 fue eliminar componentes legacy. H2 era una base de datos de desarrollo, no de producción.",
+    explanation:"VERDADERO. La extensión H2 (gs-h2) fue completamente eliminada en GeoServer 3.0. Si tenías capas usando H2, debes migrarlas a PostGIS o GeoPackage antes de actualizar. Es un cambio irreversible al pasar de GS 2.x a GS 3."
+  },
+  {
+    id:10, type:"Opción múltiple", points:8,
+    text:"¿Qué elemento de GeoServer agrupa y organiza las capas de un mismo proyecto?",
+    options:[
+      "Un Layer Group",
+      "Un Workspace",
+      "Un Store",
+      "Un Style"
+    ],
+    correct:1,
+    hint:"Este elemento aparece siempre en la URL del servicio: http://servidor/geoserver/ESTE_ELEMENTO/wms.",
+    explanation:"El Workspace es el contenedor de primer nivel que agrupa todas las capas de un mismo proyecto. La URL de un servicio siempre incluye el workspace: /geoserver/{workspace}/wms. Un Layer Group agrupa capas para visualización compuesta, pero no es el contenedor de proyecto."
+  },
+  {
+    id:11, type:"Opción múltiple", points:10,
+    text:"¿Cuál es la diferencia fundamental entre WMS y WMTS?",
+    options:[
+      "WMS sirve imágenes dinámicas generadas en tiempo real; WMTS sirve teselas pre-generadas en caché",
+      "WMS es para datos vectoriales; WMTS es para datos raster",
+      "WMS es un estándar antiguo reemplazado por WMTS; los clientes modernos no soportan WMS",
+      "WMS devuelve datos en GeoJSON; WMTS devuelve imágenes PNG"
+    ],
+    correct:0,
+    hint:"La 'T' en WMTS significa 'Tiled' (teselado). ¿Qué ventaja tiene tener imágenes pre-generadas vs. generarlas en cada petición?",
+    explanation:"WMS genera la imagen del mapa en tiempo real con cada petición (flexible pero más lento). WMTS sirve teselas pre-generadas y guardadas en caché (muy rápido). GeoWebCache en GeoServer hace posible el WMTS. Para mapas base que no cambian, WMTS es mucho más eficiente."
+  },
+  {
+    id:12, type:"Verdadero / Falso", points:10,
+    text:"GeoServer puede funcionar sin Tomcat instalado por separado si se usa el paquete binario independiente.",
+    options:[
+      "Verdadero — el paquete binario incluye Jetty como servidor de aplicaciones embebido",
+      "Falso — GeoServer siempre requiere Tomcat instalado externamente"
+    ],
+    correct:0,
+    hint:"Cuando descargas el instalador 'bin' o 'exe' de GeoServer, ¿qué servidor incluye además del propio GeoServer?",
+    explanation:"VERDADERO. El paquete binario de GeoServer incluye Jetty como servidor de aplicaciones embebido. Solo el archivo WAR requiere un Tomcat externo. Para desarrollo o pruebas, la instalación binaria es la más sencilla porque no necesitas instalar Tomcat por separado."
+  }
+];
+</script>
+<script src="assets/quiz.js"></script>
+</body>
+</html>
