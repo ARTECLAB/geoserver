@@ -1,5 +1,5 @@
 # 📋 GeoServer 3 — Banco de Preguntas
-**ARTECLAB · danielquisbert.com/questions/**
+**ARTECLAB · danielquisbert.com/test/**
 
 Sistema de cuestionarios interactivos de práctica para el curso de GeoServer 3. Archivos HTML estáticos, sin backend, sin dependencias externas. Funciona directamente en GitHub Pages.
 
@@ -9,22 +9,22 @@ Sistema de cuestionarios interactivos de práctica para el curso de GeoServer 3.
 
 | Archivo | URL |
 |---------|-----|
-| Índice general | `danielquisbert.com/questions/` |
-| Clase 1 | `danielquisbert.com/questions/meridian.html` |
-| Clase 2 | `danielquisbert.com/questions/datum.html` |
-| Clase 3 | `danielquisbert.com/questions/vector.html` |
-| Clase 4 | `danielquisbert.com/questions/raster.html` |
-| Clase 5 | `danielquisbert.com/questions/symbology.html` |
-| Clase 6 | `danielquisbert.com/questions/topology.html` |
-| Clase 7 | `danielquisbert.com/questions/ogcapi.html` |
-| Clase 8 | `danielquisbert.com/questions/geodesia.html` |
+| Índice general | `danielquisbert.com/test/` |
+| Clase 1 | `danielquisbert.com/test/meridian.html` |
+| Clase 2 | `danielquisbert.com/test/datum.html` |
+| Clase 3 | `danielquisbert.com/test/vector.html` |
+| Clase 4 | `danielquisbert.com/test/raster.html` |
+| Clase 5 | `danielquisbert.com/test/symbology.html` |
+| Clase 6 | `danielquisbert.com/test/topology.html` |
+| Clase 7 | `danielquisbert.com/test/ogcapi.html` |
+| Clase 8 | `danielquisbert.com/test/geodesia.html` |
 
 ---
 
 ## 🗂️ Arquitectura de archivos
 
 ```
-questions/
+test/
 │
 ├── index.html              ← Página de entrada (presentación del curso)
 │
@@ -179,4 +179,4 @@ Abre el `.html` correspondiente y edita el array `window.QUIZ_QUESTIONS`. Cada o
 
 ---
 
-*ARTECLAB Bolivia · <https://danielquisbert.com> · GeoServer 3.0.0*
+*ARTECLAB · <https://danielquisbert.com> · GeoServer 3.0.0*
