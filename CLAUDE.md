@@ -27,7 +27,7 @@
 | `vector.html` | 3 | PostGIS y Conversión de Datos con ogr2ogr | 13 |
 | `raster.html` | 4 | Publicación de capas | 13 |
 | `symbology.html` | 5 | Estilos SLD y CSS cartográfico | 12 |
-| `topology.html` | 6 | PostGIS + GeoServer — datos desde la base | 13 |
+| `topology.html` | 6 | PostGIS + GeoServer — datos desde la base | 14 |
 | `ogcapi.html` | 7 | Servicios OGC, seguridad y filtros CQL | 13 |
 | `geodesia.html` | 8 | Proyecto final — IDE Municipal | 11 |
 
