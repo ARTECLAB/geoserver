@@ -64,27 +64,31 @@
 <div class="slide slide-content"><div class="slide-label">Configuración</div><div class="slide-title">Crear usuario para GeoServer</div><div class="slide-body">
 <div class="two-col">
 <div><div class="code-label">4 comandos — copiar y pegar el bloque completo, cada uno muestra su resultado</div>
-<div class="code-block"><span class="c"># 1. Crear usuario para GeoServer</span>
-<span class="k">sudo</span> -u postgres psql -c <span class="s">"CREATE USER geoserver_user WITH PASSWORD 'geoserver123';"</span>
+<div class="code-block" style="font-size:11px;"><span class="c"># 1. Crear usuario para GeoServer</span>
+<span class="k">sudo</span> -u postgres psql -c \
+  <span class="s">"CREATE USER geoserver_user WITH PASSWORD 'geoserver123';"</span>
 <span class="c"># Debe mostrar: CREATE ROLE</span>
 
 <span class="c"># 2. Permitir que se conecte a la base del curso</span>
-<span class="k">sudo</span> -u postgres psql -c <span class="s">"GRANT CONNECT ON DATABASE geoserver_curso TO geoserver_user;"</span>
+<span class="k">sudo</span> -u postgres psql -c \
+  <span class="s">"GRANT CONNECT ON DATABASE geoserver_curso TO geoserver_user;"</span>
 <span class="c"># Debe mostrar: GRANT</span>
 
 <span class="c"># 3. Permitir el uso del schema (nota: -d geoserver_curso, no \c)</span>
-<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c <span class="s">"GRANT USAGE ON SCHEMA public TO geoserver_user;"</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"GRANT USAGE ON SCHEMA public TO geoserver_user;"</span>
 <span class="c"># Debe mostrar: GRANT</span>
 
 <span class="c"># 4. Dar permiso de solo lectura sobre las tablas</span>
-<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c <span class="s">"GRANT SELECT ON ALL TABLES IN SCHEMA public TO geoserver_user;"</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"GRANT SELECT ON ALL TABLES IN SCHEMA public TO geoserver_user;"</span>
 <span class="c"># Debe mostrar: GRANT</span></div></div>
 <div>
 <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">🔁</span><div class="callout-body"><div class="callout-title">Si ya creaste el usuario en clase</div>El paso 1 puede responder <code>ERROR: el rol ya existe</code> — normal, ignóralo y sigue pegando. Cada paso es independiente, así que 2, 3 y 4 corren igual.</div></div>
 <div class="callout callout-warn"><span class="callout-icon">🚨</span><div class="callout-body"><div class="callout-title">Por qué no usamos \c</div>Al pegar bloques de texto, <code>\c</code> puede confundir la línea siguiente con el puerto de conexión y fallar. Conectar directo con <code>-d geoserver_curso</code> evita el problema.</div></div>
 </div></div></div></div>
 
-<div class="slide slide-section"><div class="section-num">Parte 2</div><div class="section-title">Importar datos<br>con ogr2ogr</div><div class="section-desc">Un Shapefile de Bolivia a PostGIS en una sola línea</div></div>
+<div class="slide slide-section"><div class="section-num">Parte 2</div><div class="section-title">Importar datos<br>con ogr2ogr</div><div class="section-desc">Un Shapefile de Bolivia a PostGIS en un solo comando</div></div>
 
 <div class="slide slide-content"><div class="slide-label">ogr2ogr</div><div class="slide-title">¿Qué es ogr2ogr y para qué lo usamos?</div><div class="slide-body">
 <div class="two-col">
@@ -108,12 +112,20 @@ ogr2ogr --formats | grep -i post
 
 <div class="slide slide-content"><div class="slide-label">Importar datos</div><div class="slide-title">Shapefile de Bolivia → PostGIS con ogr2ogr</div><div class="slide-body">
 <div class="two-col">
-<div><div class="code-label">El comando completo — todo en una sola línea, sin \</div>
+<div><div class="code-label">El comando completo</div>
 <div class="code-block"><span class="c"># Importar departamentos de Bolivia</span>
-ogr2ogr -f <span class="s">"PostgreSQL"</span> PG:<span class="s">"host=localhost port=5432 dbname=geoserver_curso user=postgres"</span> departamentos.shp -nln departamentos -nlt PROMOTE_TO_MULTI -t_srs EPSG:4326 -overwrite
+ogr2ogr \
+  -f <span class="s">"PostgreSQL"</span> \
+  PG:<span class="s">"host=localhost port=5432 dbname=geoserver_curso user=postgres"</span> \
+  departamentos.shp \
+  -nln departamentos \
+  -nlt PROMOTE_TO_MULTI \
+  -t_srs EPSG:4326 \
+  -overwrite
 
 <span class="c"># Verificar que se importó</span>
-<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c <span class="s">"SELECT count(*) FROM departamentos;"</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"SELECT count(*) FROM departamentos;"</span>
 <span class="c"># Bolivia tiene 9 departamentos</span></div>
 
 <div class="code-label" style="margin-top:14px;">Explicación de cada parámetro</div>
