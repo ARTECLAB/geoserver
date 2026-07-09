@@ -112,11 +112,11 @@ ogr2ogr --formats | grep -i post
 
 <div class="slide slide-content"><div class="slide-label">Importar datos</div><div class="slide-title">Shapefile de Bolivia → PostGIS con ogr2ogr</div><div class="slide-body">
 <div class="two-col">
-<div><div class="code-label">El comando completo</div>
+<div><div class="code-label">El comando completo — con sudo -u postgres, igual que los demás</div>
 <div class="code-block"><span class="c"># Importar departamentos de Bolivia</span>
-ogr2ogr \
+<span class="k">sudo</span> -u postgres ogr2ogr \
   -f <span class="s">"PostgreSQL"</span> \
-  PG:<span class="s">"host=localhost port=5432 dbname=geoserver_curso user=postgres"</span> \
+  PG:<span class="s">"dbname=geoserver_curso"</span> \
   departamentos.shp \
   -nln departamentos \
   -nlt PROMOTE_TO_MULTI \
@@ -137,8 +137,9 @@ ogr2ogr \
 <span class="c">-t_srs EPSG:4326   → reproyectar si hace falta</span>
 <span class="c">-overwrite         → sobreescribir si ya existe</span></div></div>
 <div>
-<div class="callout callout-ok" style="margin-bottom:10px;"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">ogr2ogr crea la tabla sola</div>No necesitas CREATE TABLE. ogr2ogr lee los campos del Shapefile y crea la tabla con las columnas y tipos de datos correctos, incluyendo la columna de geometría.</div></div>
-<div class="callout callout-warn"><span class="callout-icon">⚠️</span><div class="callout-body"><div class="callout-title">Ejecutar desde la misma VM</div>El Shapefile debe estar en la VM. Si lo tienes en tu computadora, cópialo primero con <code>scp archivo.shp usuario@ip-vm:/ruta/</code></div></div>
+<div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🔑</span><div class="callout-body"><div class="callout-title">¿Por qué postgres y no geoserver_user?</div>Son dos usuarios para dos momentos distintos. <code>postgres</code> (superusuario) importa los datos una sola vez — necesita crear la tabla e insertar filas. <code>geoserver_user</code> (solo lectura) es el que GeoServer usará después para <em>servir</em> esos datos ya importados.</div></div>
+<div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">🔌</span><div class="callout-body"><div class="callout-title">Sin host ni user en PG:</div><code>sudo -u postgres</code> conecta por el socket local (autenticación peer, sin contraseña). Si agregas <code>host=localhost</code> o <code>user=postgres</code>, ogr2ogr fuerza una conexión por red que sí pide contraseña — y falla.</div></div>
+<div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">Si da "Permission denied" leyendo el .shp</div>Como el comando corre como usuario <code>postgres</code>, puede no tener acceso a tu carpeta personal. Solución: <code>sudo cp *.shp *.dbf *.shx *.prj /tmp/ && cd /tmp</code> y correr el comando desde ahí.</div></div>
 </div></div></div></div>
 
 <div class="slide slide-section"><div class="section-num">Parte 3</div><div class="section-title">Conectar GeoServer<br>con PostGIS</div><div class="section-desc">Crear el Store y publicar la primera capa desde la base de datos</div></div>
