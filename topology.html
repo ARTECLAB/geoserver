@@ -78,24 +78,27 @@
     <div class="slide slide-section"><div class="section-num">Paso 2 de 4</div><div class="section-title">Importar datos<br>a PostGIS</div><div class="section-desc">ogr2ogr: el camino más rápido</div></div>
 
     <div class="slide slide-content"><div class="slide-label">Importación masiva</div><div class="slide-title">ogr2ogr → PostGIS</div><div class="slide-body">
-    <div class="code-label">Importar GeoPackage completo a PostGIS</div>
+    <div class="code-label">Paso 0 — mover el archivo a una carpeta que postgres pueda leer</div>
+    <div class="code-block"><span class="k">sudo</span> cp datos.gpkg /tmp/
+<span class="k">cd</span> /tmp</div>
+    <div class="code-label" style="margin-top:14px;">Importar GeoPackage completo a PostGIS — con sudo -u postgres</div>
     <div class="code-block"><span class="c"># Importar cada capa del GeoPackage a PostGIS</span>
-<span class="k">ogr2ogr</span> \
+<span class="k">sudo</span> -u postgres ogr2ogr \
   -f <span class="s">"PostgreSQL"</span> \
-  PG:<span class="s">"host=localhost dbname=geobolivia user=postgres"</span> \
+  PG:<span class="s">"dbname=geobolivia"</span> \
   datos.gpkg \
   -nln <span class="n">municipios</span> \
   -t_srs <span class="n">EPSG:4326</span> \
   -overwrite
 
-<span class="c"># Crear índice espacial (con sudo -u postgres, igual que los demás)</span>
+<span class="c"># Crear índice espacial</span>
 <span class="k">sudo</span> -u postgres psql -d geobolivia -c \
   <span class="s">"CREATE INDEX idx_mun_geom ON municipios USING GIST(wkb_geometry);"</span>
 
 <span class="c"># Verificar en psql</span>
 <span class="k">sudo</span> -u postgres psql -d geobolivia -c <span class="s">"SELECT COUNT(*) FROM municipios;"</span></div>
     <div class="callout callout-ok" style="margin-top:12px;"><span class="callout-icon">✓</span><div class="callout-body"><code>-overwrite</code> elimina y recrea la tabla. <code>-append</code> agrega filas a una tabla existente. Usa overwrite para carga inicial y append para actualizaciones parciales.</div></div>
-    <div class="callout callout-warn" style="margin-top:10px;"><span class="callout-icon">⚠️</span><div class="callout-body">Sin <code>sudo -u postgres</code>, <code>psql</code> suele fallar con "role does not exist" — úsalo siempre antes de <code>psql</code>.</div></div>
+    <div class="callout callout-warn" style="margin-top:10px;"><span class="callout-icon">⚠️</span><div class="callout-body">Sin <code>host</code>/<code>user</code> en <code>PG:</code>, ogr2ogr usa el socket local con <code>sudo -u postgres</code> — sin esto, PostgreSQL pide una contraseña que el rol <code>postgres</code> no tiene.</div></div>
     </div></div>
 
     <div class="slide slide-section"><div class="section-num">Paso 3 de 4</div><div class="section-title">Datastore PostGIS<br>en GeoServer</div><div class="section-desc">Conectar GeoServer a PostgreSQL</div></div>

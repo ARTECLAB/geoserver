@@ -112,7 +112,12 @@ ogr2ogr --formats | grep -i post
 
 <div class="slide slide-content"><div class="slide-label">Importar datos</div><div class="slide-title">Shapefile de Bolivia → PostGIS con ogr2ogr</div><div class="slide-body">
 <div class="two-col">
-<div><div class="code-label">El comando completo — con sudo -u postgres, igual que los demás</div>
+<div><div class="code-label">Paso 0 — mover el Shapefile a una carpeta que postgres pueda leer</div>
+<div class="code-block"><span class="c"># El usuario postgres no puede entrar a tu carpeta personal</span>
+<span class="k">sudo</span> cp departamentos.* /tmp/
+<span class="k">cd</span> /tmp</div>
+
+<div class="code-label" style="margin-top:14px;">El comando completo — con sudo -u postgres, igual que los demás</div>
 <div class="code-block"><span class="c"># Importar departamentos de Bolivia</span>
 <span class="k">sudo</span> -u postgres ogr2ogr \
   -f <span class="s">"PostgreSQL"</span> \
@@ -131,15 +136,15 @@ ogr2ogr --formats | grep -i post
 <div class="code-label" style="margin-top:14px;">Explicación de cada parámetro</div>
 <div class="code-block"><span class="c">-f "PostgreSQL"    → formato de destino</span>
 <span class="c">PG:"..."           → cadena de conexión</span>
-<span class="c">departamentos.shp  → archivo de origen</span>
-<span class="c">-nln departamentos → nombre de la tabla</span>
+<span class="c">departamentos.shp  → archivo de origen (el nombre no importa)</span>
+<span class="c">-nln departamentos → nombre de la TABLA — usa siempre este</span>
 <span class="c">-nlt PROMOTE_TO_MULTI → unifica geometrías</span>
 <span class="c">-t_srs EPSG:4326   → reproyectar si hace falta</span>
 <span class="c">-overwrite         → sobreescribir si ya existe</span></div></div>
 <div>
-<div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🔑</span><div class="callout-body"><div class="callout-title">¿Por qué postgres y no geoserver_user?</div>Son dos usuarios para dos momentos distintos. <code>postgres</code> (superusuario) importa los datos una sola vez — necesita crear la tabla e insertar filas. <code>geoserver_user</code> (solo lectura) es el que GeoServer usará después para <em>servir</em> esos datos ya importados.</div></div>
-<div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">🔌</span><div class="callout-body"><div class="callout-title">Sin host ni user en PG:</div><code>sudo -u postgres</code> conecta por el socket local (autenticación peer, sin contraseña). Si agregas <code>host=localhost</code> o <code>user=postgres</code>, ogr2ogr fuerza una conexión por red que sí pide contraseña — y falla.</div></div>
-<div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">Si da "Permission denied" leyendo el .shp</div>Como el comando corre como usuario <code>postgres</code>, puede no tener acceso a tu carpeta personal. Solución: <code>sudo cp *.shp *.dbf *.shx *.prj /tmp/ && cd /tmp</code> y correr el comando desde ahí.</div></div>
+<div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">📂</span><div class="callout-body"><div class="callout-title">-nln no depende del nombre del archivo</div>Tu archivo puede llamarse como quieras (<code>dptos_bol.shp</code>, etc.) — pero usa siempre <code>-nln departamentos</code>. El resto del curso (la verificación, el Store de GeoServer) espera una tabla llamada exactamente <code>departamentos</code>.</div></div>
+<div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">🔑</span><div class="callout-body"><div class="callout-title">¿Por qué postgres y no geoserver_user?</div><code>postgres</code> importa una sola vez (necesita crear tabla e insertar filas). <code>geoserver_user</code>, solo lectura, es el que usará GeoServer después para servir esos datos ya importados.</div></div>
+<div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">Si ves "Unable to open datasource... with the following drivers"</div>Ese error largo (lista de decenas de drivers) significa que <code>postgres</code> no pudo ni leer el archivo — típicamente porque está en tu carpeta personal. El Paso 0 de arriba evita esto.</div></div>
 </div></div></div></div>
 
 <div class="slide slide-section"><div class="section-num">Parte 3</div><div class="section-title">Conectar GeoServer<br>con PostGIS</div><div class="section-desc">Crear el Store y publicar la primera capa desde la base de datos</div></div>
