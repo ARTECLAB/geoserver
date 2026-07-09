@@ -25,8 +25,8 @@
 | `meridian.html` | 1 | Fundamentos y Arquitectura de GeoServer 3 | 16 |
 | `datum.html` | 2 | Instalación en Debian 13 con VirtualBox | 16 |
 | `vector.html` | 3 | PostGIS y Conversión de Datos con ogr2ogr | 13 |
-| `raster.html` | 4 | Publicación de capas | 13 |
-| `symbology.html` | 5 | Estilos SLD y CSS cartográfico | 12 |
+| `raster.html` | 4 | Publicación de capas vectoriales | 11 |
+| `symbology.html` | 5 | Estilos SLD y CSS cartográfico | 11 |
 | `topology.html` | 6 | PostGIS + GeoServer — datos desde la base | 14 |
 | `ogcapi.html` | 7 | Servicios OGC, seguridad y filtros CQL | 13 |
 | `geodesia.html` | 8 | Proyecto final — IDE Municipal | 11 |
@@ -42,7 +42,8 @@ Cada quiz: 12 preguntas · 2 intentos · retroalimentación inmediata.
 
 ```
 SO:       Debian 13 (Trixie) en VirtualBox
-RAM VM:   6 GB asignados
+RAM VM:   2 GB asignados (¡no 6 GB! — ver nota abajo)
+Disco VM: 6 GB asignados
 Java:     JDK 17 o 21 — PREINSTALADO en la VM (no instalar manualmente)
 Tomcat:   11 — PREINSTALADO en la VM
           → apt install tomcat11 (ya hecho)
@@ -54,6 +55,8 @@ GeoServer: 3.x desplegado como WAR en webapps/ de Tomcat
 DB:       PostgreSQL + PostGIS en la MISMA VM
 GDAL:     ogr2ogr para importar Shapefiles
 ```
+
+> **RAM real = 2 GB, no 6 GB.** Con solo 2GB, el stack base (Debian + PostgreSQL/PostGIS + Tomcat + JVM de GeoServer) ya deja muy poco margen — GeoServer normalmente necesita ≥1GB de heap para funcionar bien. **Por eso el curso NO publica GeoTIFF ni ningún raster**: decodificar tiles de una imagen para WMS puede disparar el uso de memoria muy por encima del tamaño del archivo en disco, con alto riesgo de `OutOfMemoryError` o que el OOM killer de Linux mate Tomcat/Postgres en plena clase. Cualquier recomendación de `-Xmx` para la JVM debe ser conservadora (ej. `-Xmx768m`, nunca `-Xmx2g` — eso reservaría toda la RAM de la VM solo para el heap).
 
 ### Verificar entorno
 ```bash
@@ -73,8 +76,7 @@ ip a                    # para ver la IP de la VM
 | Tomcat 9 o Tomcat 10 | Tomcat 11 |
 | localhost en ejemplos del cliente | `192.168.X.X:8080` |
 | localhost en código de GeoServer remoto | IP de la VM |
-| WCS ni procesamiento raster avanzado | Un GeoTIFF básico (<50MB) |
-| DEM con múltiples ColorMap entries | ColorMap simple tipo ramp |
+| Publicar GeoTIFF o cualquier raster | Solo capas vectoriales (Shapefile, PostGIS) — la VM tiene solo 2GB RAM |
 
 ---
 
@@ -84,8 +86,7 @@ ip a                    # para ver la IP de la VM
 Workspace (contenedor del proyecto)
   └── Store (fuente de datos)
         ├── Tipo Shapefile → apunta a un .shp
-        ├── Tipo PostGIS   → conexión a PostgreSQL
-        └── Tipo GeoTIFF   → apunta a un .tif
+        └── Tipo PostGIS   → conexión a PostgreSQL
             └── Layer (capa publicada)
                   └── Style (SLD o CSS)
 ```
@@ -116,15 +117,17 @@ SQL
 ## ogr2ogr — importar Shapefile a PostGIS
 
 ```bash
-ogr2ogr \
+sudo -u postgres ogr2ogr \
   -f "PostgreSQL" \
-  PG:"host=localhost port=5432 dbname=geoserver_curso user=postgres" \
+  PG:"dbname=geoserver_curso" \
   departamentos.shp \
   -nln departamentos \
   -nlt PROMOTE_TO_MULTI \
   -t_srs EPSG:4326 \
   -overwrite
 ```
+
+> **Sin `host=localhost`/`user=postgres` en `PG:`.** Eso fuerza autenticación por contraseña (que el rol `postgres` no tiene) y falla con `fe_sendauth: no password supplied`. Con `sudo -u postgres` + solo `dbname=...`, ogr2ogr usa el socket local (autenticación peer, sin contraseña) — igual que todos los `psql -c` del curso.
 
 Parámetros importantes:
 - `-nln` → nombre de la tabla destino
@@ -176,15 +179,6 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 <!-- Escala dependiente -->
 <MinScaleDenominator>50000</MinScaleDenominator>
 <MaxScaleDenominator>500000</MaxScaleDenominator>
-
-<!-- ColorMap para GeoTIFF -->
-<RasterSymbolizer>
-  <ColorMap type="ramp">
-    <ColorMapEntry color="#1a9641" quantity="0"/>
-    <ColorMapEntry color="#ffffb2" quantity="128"/>
-    <ColorMapEntry color="#d7191c" quantity="255"/>
-  </ColorMap>
-</RasterSymbolizer>
 ```
 
 ---
@@ -196,12 +190,8 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 | Departamentos de Bolivia | Shapefile + PostGIS | 1, 2, 3, 4, 5, 6 |
 | Municipios de Bolivia | Shapefile + PostGIS | 4, 6 |
 | Vialidad de Bolivia | Shapefile | 4 |
-| Imagen satelital o elevación | GeoTIFF (<50MB) | 4, 5 |
 
-Fuentes recomendadas para GeoTIFF:
-- SRTM elevación: `earthexplorer.usgs.gov`
-- Imágenes Sentinel: `scihub.copernicus.eu`
-- GeoBolivia: `geo.gob.bo`
+> Sin GeoTIFF/raster en el curso — la VM tiene solo 2GB RAM, ver nota en "Entorno de trabajo".
 
 ---
 
@@ -213,8 +203,8 @@ Fuentes recomendadas para GeoTIFF:
 - `meridian.html` — arquitectura GeoServer, servicios OGC, interfaz
 - `datum.html` — instalación Debian 13, Tomcat 11, WAR, memoria Java
 - `vector.html` — PostGIS con apt, ogr2ogr completo, Store PostGIS en GeoServer
-- `raster.html` — Shapefile, Layer Groups, GeoTIFF básico
-- `symbology.html` — SLD, CSS, escala dependiente, ColorMap simple
+- `raster.html` — Shapefile, Layer Groups, segunda capa (provincias) — sin GeoTIFF
+- `symbology.html` — SLD, CSS, escala dependiente — solo estilos vectoriales, sin ColorMap/raster
 - `topology.html` — PostGIS avanzado, vistas SQL, datos dinámicos
 - `ogcapi.html` — WMS/WFS/WMTS, CQL_FILTER, seguridad, roles
 - `geodesia.html` — proyecto final IDE Municipal
@@ -226,12 +216,12 @@ Fuentes recomendadas para GeoTIFF:
 - localhost → `192.168.X.X:8080` en todos los ejemplos del cliente
 - Tomcat 10 → Tomcat 11 en todos los archivos
 - Java: "preinstalado en la VM" en lugar de instrucciones de instalación
-- Raster simplificado: sin DEM complejo, sin WCS, solo GeoTIFF básico
 - ARTECLAB Bolivia → ARTECLAB en todos los archivos
+- RAM real corregida a 2GB (no 6GB) — GeoTIFF/raster eliminado de `raster.html` y `symbology.html` por riesgo de OOM en la VM (2026-07-09)
+- `ogr2ogr` sin `host=localhost`/`user=postgres` en la cadena `PG:` — causaba `fe_sendauth: no password supplied`
 
-### ⚠️ Pendiente — mismo que Flutter GIS
-- Corrección global de `slides.css`: `justify-content: flex-start` en `.slide.active`
-- Revisar comentarios en code-block de todos los slides
+### ✅ Resuelto (2026-07-09)
+`slides.css` ya usa `justify-content: flex-start` en `.slide.active` y `font-size: clamp(10px, 1.1vw, 13px)` en `.code-block` (mismo fix que fluttergis, son dos copias separadas del archivo).
 
 ---
 

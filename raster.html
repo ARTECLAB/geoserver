@@ -4,20 +4,20 @@
 <title>Clase 4 — Publicación de Capas · ARTECLAB</title>
 <link rel="stylesheet" href="assets/slides.css"></head>
 <body><div class="deck">
-<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 4</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 13</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
+<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 4</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 11</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
 <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
 <div class="slides-wrap">
 
 <div class="slide slide-cover"><div class="cover-grid"></div>
 <div class="cover-tag"><span class="cover-dot"></span> Módulo 2 · Clase 4 · <span class="auto-year"></span></div>
 <h1 class="cover-title">Publicación de Capas:<br><em>del dato a la pantalla</em></h1>
-<p class="cover-sub">Shapefiles, Layer Groups y tu primer GeoTIFF publicado en GeoServer</p>
+<p class="cover-sub">Shapefiles y Layer Groups: el flujo completo de publicación en GeoServer</p>
 <div class="cover-pills"><span class="cover-pill">⏱ 2 horas</span><span class="cover-pill">🗺️ Publicación</span><span class="cover-pill">👨‍💻 Daniel Quisbert</span></div></div>
 
 <div class="slide slide-content"><div class="slide-label">Al finalizar esta clase</div><div class="slide-title">¿Qué vamos a lograr hoy?</div><div class="slide-body"><div class="steps">
-<div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Publicar capas vectoriales de Bolivia desde Shapefiles</div><div class="step-desc">Departamentos, municipios y vialidad — el flujo completo Workspace → Store → Layer.</div></div></div>
+<div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Publicar capas vectoriales de Bolivia desde Shapefiles</div><div class="step-desc">Departamentos — el flujo completo Workspace → Store → Layer.</div></div></div>
 <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Crear un Layer Group — varias capas como una sola</div><div class="step-desc">El cliente pide una URL y recibe todas las capas apiladas en una imagen.</div></div></div>
-<div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Publicar un GeoTIFF básico</div><div class="step-desc">Un archivo raster de imagen satelital o modelo de elevación ligero de Bolivia.</div></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Repetir el flujo con una segunda capa: provincias</div><div class="step-desc">Publicar provincias.shp y sumarla al Workspace y al Layer Group.</div></div></div>
 <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Explorar todo en el Layer Preview</div><div class="step-desc">Verificar cada capa con OpenLayers integrado en GeoServer.</div></div></div>
 </div><div class="instructor-strip"><div class="is-avatar">DQ</div><div><div class="is-name">Daniel Quisbert</div><div class="is-role">ARTECLAB · geoserver-pro.danielquisbert.com</div></div></div></div></div>
 
@@ -65,28 +65,15 @@
 <div class="callout callout-ok" style="margin-top:10px;"><span class="callout-icon">✓</span><div class="callout-body">Las capas del grupo pueden tener estilos diferentes al publicarlas individualmente. El Layer Group asigna el estilo que corresponde a cada rol en el mapa.</div></div>
 </div></div></div></div>
 
-<div class="slide slide-section"><div class="section-num">Paso 3 de 4</div><div class="section-title">Tu primer GeoTIFF</div><div class="section-desc">Un archivo raster básico — sin complicaciones</div></div>
+<div class="slide slide-section"><div class="section-num">Paso 3 de 4</div><div class="section-title">Segunda capa:<br>provincias</div><div class="section-desc">Repetir el flujo completo refuerza el patrón Workspace → Store → Layer</div></div>
 
-<div class="slide slide-content"><div class="slide-label">GeoTIFF básico</div><div class="slide-title">¿Qué es un GeoTIFF y cuándo lo usamos?</div><div class="slide-body">
-<div class="two-col">
-<div>
-<div class="callout callout-info" style="margin-bottom:12px;"><span class="callout-icon">🖼️</span><div class="callout-body"><div class="callout-title">GeoTIFF = imagen + coordenadas</div>Es una imagen normal (TIFF) con información geográfica incrustada: dónde está, qué zona cubre y en qué sistema de coordenadas. GeoServer lo lee y lo sirve como WMS igual que un Shapefile.</div></div>
-<div class="cards" style="gap:8px;">
-<div class="card card-gold"><div class="card-title">¿Para qué sirve en el curso?</div><div class="card-desc">Como capa de fondo en el Layer Group. Una imagen satelital o de elevación da contexto visual a las capas vectoriales de Bolivia.</div></div>
-<div class="card"><div class="card-title">¿Es difícil publicarlo?</div><div class="card-desc">No. El proceso es idéntico al Shapefile: copiar el archivo, crear el Store de tipo GeoTIFF, publicar la Layer. GeoServer hace el resto.</div></div>
-</div></div>
-<div>
-<div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">⚠️</span><div class="callout-body"><div class="callout-title">Importante: archivos livianos</div>Para el curso usaremos un GeoTIFF pequeño de Bolivia (menos de 50MB). Los archivos de cientos de GB requieren configuración adicional que está fuera del alcance de esta clase.</div></div>
-<div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">6GB de RAM es suficiente</div>GeoServer no carga el GeoTIFF completo en memoria — lo lee por bloques. Un archivo de 20-50MB funciona sin ningún problema en nuestra VM de 6GB.</div></div>
-</div></div></div></div>
-
-<div class="slide slide-content"><div class="slide-label">Publicar el GeoTIFF</div><div class="slide-title">Mismo flujo que el Shapefile — Store de tipo GeoTIFF</div><div class="slide-body"><div class="steps">
-<div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Copiar el archivo .tif al Data Directory</div><div class="step-desc"><code>/opt/tomcat/webapps/geoserver/data/data/bolivia/imagen.tif</code></div></div></div>
-<div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Datos → Stores → Agregar nuevo Store → GeoTIFF</div><div class="step-desc">Apuntar al archivo .tif. GeoServer detecta el CRS y el Bounding Box del archivo.</div></div></div>
-<div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Publicar → verificar CRS y Bounding Box</div><div class="step-desc">Si el CRS no se detecta, escribir EPSG:4326 manualmente y hacer clic en "Compute from data".</div></div></div>
-<div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Asignar estilo "raster" y probar en Layer Preview</div><div class="step-desc">GeoServer incluye un estilo "raster" por defecto que muestra la imagen correctamente. Luego lo personalizaremos en la Clase 5.</div></div></div>
+<div class="slide slide-content"><div class="slide-label">Paso a paso</div><div class="slide-title">Publicar provincias de Bolivia desde un Shapefile</div><div class="slide-body"><div class="steps">
+<div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Copiar provincias.shp al Data Directory</div><div class="step-desc"><code>/opt/tomcat/webapps/geoserver/data/data/bolivia/provincias.shp</code> — junto con .dbf, .shx y .prj.</div></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Datos → Stores → Agregar nuevo Store → Shapefile</div><div class="step-desc">Mismo Workspace (<code>bolivia_curso</code>) que usaste para departamentos — un Workspace puede tener varios Stores de Shapefile.</div></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Publicar → verificar CRS y Bounding Box</div><div class="step-desc">Igual que con departamentos: confirmar EPSG:4326 y que el Bounding Box cubra Bolivia.</div></div></div>
+<div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Agregar provincias al Layer Group mapa_bolivia</div><div class="step-desc">Encima de departamentos, para ver ambos niveles administrativos a la vez.</div></div></div>
 </div>
-<div class="callout callout-info" style="margin-top:14px;"><span class="callout-icon">🌐</span><div class="callout-body"><div class="callout-title">¿Dónde consigo un GeoTIFF de Bolivia?</div>El instructor proveerá el archivo en clase. También puedes descargar uno gratuito de SRTM (elevación) en <strong>earthexplorer.usgs.gov</strong> o imágenes en <strong>scihub.copernicus.eu</strong>.</div></div>
+<div class="callout callout-ok" style="margin-top:14px;"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">El mismo flujo, sin sorpresas</div>Publicar una segunda capa vectorial es idéntico a la primera. Una vez que el patrón Workspace → Store → Layer queda claro, cualquier Shapefile nuevo se publica en minutos.</div></div>
 </div></div>
 
 <div class="slide slide-content"><div class="slide-label">Resumen</div><div class="slide-title">Lo que aprendiste hoy</div><div class="slide-body">
@@ -96,10 +83,9 @@
 <li>Un Store de Shapefile apunta a un único archivo .shp. Los cuatro archivos (.shp, .dbf, .shx, .prj) deben estar juntos en la misma carpeta.</li>
 <li>Layer Groups agrupa capas para servirlas como una sola — el cliente recibe todo el mapa con una petición WMS.</li>
 <li>El orden en el Layer Group importa: las capas de abajo son el fondo, las de arriba están encima.</li>
-<li>Un GeoTIFF se publica exactamente igual que un Shapefile — Store de tipo GeoTIFF, Layer, Layer Preview.</li>
-<li>GeoServer lee el GeoTIFF por bloques — no hay problema de RAM con archivos livianos en nuestra VM de 6GB.</li>
+<li>Un Workspace admite varios Stores de Shapefile — publicar una segunda capa es el mismo flujo, sin sorpresas.</li>
 </ul>
-<div><div class="callout callout-info"><span class="callout-icon">🎨</span><div class="callout-body"><div class="callout-title">Próxima clase</div>Estilos SLD y CSS — personalizar colores, bordes, etiquetas y el ColorMap del GeoTIFF para que el mapa se vea profesional.</div></div></div>
+<div><div class="callout callout-info"><span class="callout-icon">🎨</span><div class="callout-body"><div class="callout-title">Próxima clase</div>Estilos SLD y CSS — personalizar colores, bordes y etiquetas para que el mapa se vea profesional.</div></div></div>
 </div></div></div>
 
 <div class="slide slide-cover"><div class="cover-grid"></div>
@@ -113,6 +99,6 @@
 
 </div>
 <div class="navbar"><button class="nav-btn" id="btnPrev">← Anterior</button>
-<div class="nav-dots"><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button></div>
+<div class="nav-dots"><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button></div>
 <button class="nav-btn" id="btnNext">Siguiente →</button></div>
 </div><script src="assets/slides.js"></script></body></html>

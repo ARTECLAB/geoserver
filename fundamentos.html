@@ -406,8 +406,9 @@ body {
         <span class="concept-icon">🧠</span>
         <div class="concept-name">Memoria Java (Heap)</div>
         <div class="concept-desc">GeoServer necesita memoria asignada con
-        <code>JAVA_OPTS="-Xms512m -Xmx2g"</code>. Con 6GB de RAM en la VM
-        hay espacio de sobra.</div>
+        <code>JAVA_OPTS="-Xms256m -Xmx1g"</code>. La VM del curso tiene solo
+        2GB de RAM en total — hay que dejar espacio para el sistema operativo
+        y PostgreSQL, así que el heap se mantiene conservador.</div>
       </div>
     </div>
 
@@ -527,7 +528,7 @@ body {
       <div class="concept-card">
         <span class="concept-icon">📐</span>
         <div class="concept-name">Vectorial vs Raster</div>
-        <div class="concept-desc"><strong>Vectorial:</strong> puntos, líneas y polígonos con atributos. Usamos Shapefiles y PostGIS. <strong>Raster:</strong> cuadrícula de píxeles. En el curso publicaremos un GeoTIFF básico.</div>
+        <div class="concept-desc"><strong>Vectorial:</strong> puntos, líneas y polígonos con atributos. Usamos Shapefiles y PostGIS. <strong>Raster:</strong> cuadrícula de píxeles (imágenes, elevación) — el curso es 100% vectorial, la VM no tiene RAM suficiente para publicar raster de forma confiable.</div>
       </div>
       <div class="concept-card">
         <span class="concept-icon">📁</span>
@@ -581,7 +582,7 @@ body {
         <div class="check-mark">1</div>
         <div class="check-text">
           <div class="check-bold">VirtualBox instalado con una VM de Debian 13</div>
-          <div class="check-sub">Mínimo 6 GB de RAM y 30 GB de disco asignados a la VM. El instructor compartirá la imagen o los pasos de instalación.</div>
+          <div class="check-sub">2 GB de RAM y 6 GB de disco asignados a la VM. El instructor compartirá la imagen o los pasos de instalación.</div>
         </div>
       </div>
       <div class="check-item">
