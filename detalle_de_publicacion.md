@@ -1,375 +1,299 @@
-# GeoServer 3 — Guía de referencia: publicación de mapas
+# Guión de narración — GeoServer 3: de cero a mapa publicado
 
-> Flujo completo: **Espacio de trabajo → Almacén de datos → Capas → Grupos de capas → Estilos**
-> Ejemplos con contexto boliviano (departamentos, municipios, GeoBolivia, INRA Bolivia).
-
----
-
-## 1. Espacio de trabajo (Workspace)
-
-Un **espacio de trabajo** es un contenedor que organiza almacenes de datos, capas, grupos de capas y estilos. Es el equivalente a un *namespace* XML: agrupa recursos relacionados y evita colisiones de nombres entre proyectos distintos.
-
-Ejemplo: dos capas llamadas `limites` pueden coexistir sin conflicto si una vive en el espacio de trabajo `mapas_bolivia` y otra en `catastro_lapaz`, porque cada capa se referencia como `mapas_bolivia:limites` y `catastro_lapaz:limites`.
-
-### Campos al crear un espacio de trabajo nuevo
-
-| Campo | Qué hace / para qué sirve |
-|---|---|
-| **Name** | Nombre corto del espacio de trabajo (sin espacios). Se usa como **prefijo** en el nombre de cada capa (`mapas_bolivia:municipios`) y como prefijo XML al generar documentos de capacidades (GetCapabilities). |
-| **Namespace URI** | Identificador único del espacio de trabajo, con la misma sintaxis que una URL, pero **no necesita apuntar a un sitio real**; solo debe ser único en todo el servidor. Se recomienda usar un dominio propio con un sufijo distintivo, por ejemplo `http://www.arteclab.org/mapas_bolivia`. GeoServer lo usa internamente para declarar el `xmlns` de las respuestas WFS/WMS y para diferenciar recursos que, aunque compartan nombre, pertenezcan a espacios distintos. |
-| **Espacio de trabajo por defecto (Default Workspace)** | Solo puede haber **uno** marcado como predeterminado en todo el servidor. Las capas de ese espacio pueden invocarse **sin el prefijo** en las URLs de servicio. Ejemplo: si `mapas_bolivia` es el predeterminado, la capa `mapas_bolivia:municipios` también responde como `municipios` directamente en `.../geoserver/wms`. |
-| **Isolated Workspace** | Aísla el contenido del espacio de trabajo para que **no aparezca en los servicios globales** (WMS/WFS/WCS generales) ni en su documento de capacidades global. Solo es visible y consultable a través de un **servicio virtual** propio de ese espacio (`.../geoserver/mapas_bolivia/wms`). Es útil, por ejemplo, para que dos espacios de trabajo distintos reutilicen el **mismo Namespace URI** sin conflicto (uno de los dos debe ser aislado), algo común cuando se replican configuraciones de distintos clientes o cursos en el mismo servidor. |
-
-**Ejemplo práctico ARTECLAB:** un espacio de trabajo `mapas_bolivia` (URI `http://www.arteclab.org/mapas_bolivia`), marcado como predeterminado, no aislado, contendrá todos los almacenes y capas de división política, hidrografía y catastro usados en el curso.
+> Formato: video tutorial de pantalla compartida (no short vertical).
+> Uso: leer/narrar mientras muestras cada ventana de GeoServer en vivo.
+> Cobertura: **cada propiedad del documento técnico de referencia está presente aquí**, sin recortes —
+> solo cambia la forma en que se dice, no lo que se dice.
+> Tono: cercano, seguro, de instructor que domina el tema.
+> Los CTA hacia tus cursos (GeoServer, Flutter + GIS, Webmapping con IA, GeoServer + MCP) están marcados
+> como `[CTA discreto]` — una frase, nunca un bloque publicitario.
 
 ---
 
-## 2. Almacén de datos (Data Store / Store)
+## Apertura — el porqué antes que el cómo
 
-Un **almacén de datos** define **cómo y dónde** GeoServer se conecta a una fuente de información geoespacial (shapefile, PostGIS, GeoPackage, WMS remoto, etc.). El almacén **no publica nada por sí solo**: solo abre la conexión. Publicar una capa a partir de ese almacén es un paso posterior.
+**[EN PANTALLA: panel de bienvenida de GeoServer, limpio, sin nada publicado todavía]**
 
-### Caso de estudio: almacén de tipo Shapefile (directorio)
+Todo mapa que ves funcionando en internet —el catastro de tu municipio, el visor de riesgos de un ministerio, ese mapa interactivo que te sorprendió una vez— pasó por exactamente los mismos cinco pasos que vamos a recorrer hoy.
 
-Con base en la imagen adjunta (formulario "Nuevo almacén de datos vectoriales – Directory of spatial files (shapefiles)"):
+No son cinco pasos opcionales. Son cinco decisiones. Y la mayoría de los problemas que vas a tener publicando mapas en GeoServer —capas que no cargan, colores que no aparecen, servicios lentísimos— nacen de saltarse uno de estos pasos, o de no entender para qué sirve cada campo del formulario.
 
-**Información básica del almacén**
+Así que vamos a hacerlo distinto: no vamos a memorizar botones, vamos a entender **cada propiedad**, una por una, con el criterio detrás. Porque un botón se olvida. Un criterio, no.
 
-| Campo | Descripción |
-|---|---|
-| **Espacio de trabajo** | Espacio de trabajo al que quedará asociado el almacén (ej. `mapas_bolivia`). Toda capa publicada desde este almacén heredará ese prefijo. |
-| **Nombre del origen de datos** | Identificador interno del almacén dentro del espacio de trabajo (ej. `origen_mapas_bolivia`). No es el nombre de la capa; es el nombre de la *conexión*. |
-| **Descripción** | Texto libre opcional para documentar el propósito del almacén (recomendado en cursos: anotar la fuente, ej. "Shapefiles división política — GeoBolivia 2024"). |
-
-#### Detalle: **Habilitado (Enabled)**
-
-Es un interruptor maestro a **nivel de almacén completo**, no de una capa individual. Si se desmarca:
-
-- **Ninguna** capa publicada desde ese almacén responde a peticiones WMS, WFS o WCS — el cliente recibirá un error como si la capa no existiera.
-- El almacén y todas sus capas **siguen visibles** en la interfaz web de administración y en la API REST, para que el administrador pueda editarlos o volver a habilitarlos sin perder la configuración.
-- Es distinto de **borrar** el almacén: deshabilitar es reversible y no requiere reconfigurar nada; eliminar el almacén borra también las capas asociadas.
-
-**Diferencia clave frente al "Enabled"/"Advertised" de una capa individual (ver sección 3.2):**
-
-| Nivel | Efecto de desmarcar "Enabled" |
-|---|---|
-| **Almacén** | Apaga **todas** las capas de ese origen de datos a la vez. |
-| **Capa** | Apaga solo **esa** capa; el resto del almacén sigue funcionando con normalidad. |
-| **Capa → Advertised** | La capa **sigue respondiendo** a peticiones directas, pero desaparece del listado público (GetCapabilities) y del Layer Preview. |
-
-**Casos de uso típicos en el curso:**
-- **Mantenimiento:** se está actualizando el shapefile de `divisionPolitica` (reemplazando `.shp/.dbf/.shx`) y se quiere evitar que un cliente reciba datos a medio escribir → se desmarca *Habilitado*, se reemplazan los archivos, se marca *Recargar feature type* en cada capa, y se vuelve a habilitar el almacén.
-- **Entorno de pruebas:** un almacén PostGIS que apunta a una base de datos de desarrollo se deja deshabilitado en el servidor de producción (Digital Ocean) hasta que el curso llegue a esa unidad, evitando exponer datos incompletos a los estudiantes que consultan el geovisor.
-- **Diagnóstico de errores:** si GeoServer arranca lento o con errores en el log relacionados a un almacén específico (por ejemplo, una base PostgreSQL que no responde), deshabilitarlo temporalmente permite aislar el problema sin afectar el resto del servidor.
-
-#### Detalle: **Auto disable on connection failure**
-
-Si se activa, GeoServer **deshabilita automáticamente** el almacén (equivalente a desmarcar *Habilitado* por sí solo) cuando detecta fallos repetidos al intentar conectarse a la fuente de datos.
-
-- **Por qué existe:** sin esta opción, cada petición de un cliente contra una capa cuyo almacén no responde (ej. PostgreSQL caído, VPN cortada, credenciales vencidas) dispara un nuevo intento de conexión que también falla, generando una cascada de errores en el log y demorando las respuestas de todo el servidor mientras cada intento agota su *timeout*.
-- **Con la opción activada:** tras detectar el fallo, GeoServer marca el almacén como deshabilitado automáticamente, así las siguientes peticiones fallan de inmediato (sin reintentar la conexión) hasta que un administrador revise el problema y vuelva a habilitarlo manualmente.
-- **Dónde es más relevante:** almacenes que dependen de una conexión externa activa (**PostGIS**, **PostGIS (JNDI)**, **WFS/WMS/WMTS en cascada**, cualquier base de datos remota). En un almacén de **shapefiles locales** casi no aplica, porque la "conexión" es solo acceso al disco del propio servidor, que rara vez falla de forma intermitente.
-- **Ejemplo ARTECLAB:** el almacén PostGIS de producción en Digital Ocean, que alimenta capas catastrales INRA, tiene esta opción activada; si la base de datos se reinicia por mantenimiento, GeoServer aísla el almacén automáticamente en vez de saturar el log con reintentos, y el administrador recibe la alerta para reactivarlo cuando la base vuelva a estar disponible.
-
-**Parámetros de conexión (específicos del tipo Shapefile)**
-
-| Campo | Descripción |
-|---|---|
-| **Directorio de shapefiles** | Ruta (en formato URI `file:`) a la carpeta que contiene los `.shp`. Ejemplo: `file:data/shapefiles/Cartografia/mapaBases/divisionPolitica`. Un shapefile en realidad es un **conjunto de archivos** (`.shp`, `.dbf`, `.shx`, `.prj`, y opcionalmente `.cpg`, `.sbn`, etc.) que deben residir todos en la misma carpeta. El `.prj` es clave: sin él, GeoServer puede no determinar el sistema de referencia (SRS) correctamente. |
-| **Conjunto de caracteres del DBF** | Codificación de texto del archivo `.dbf` (donde se guardan los atributos). `ISO-8859-1` es habitual en datos generados con software de escritorio en español (acentos, ñ). Si se elige mal, los nombres de municipios o departamentos aparecerán con caracteres corruptos. |
-| **Crear índice espacial si no existe o está desactualizado** | Genera (o regenera) el índice espacial `.qix`/`.fix` que acelera las consultas por extensión geográfica (BBOX). Se recomienda mantenerlo activo salvo que el índice ya se administre externamente. |
-| **Usar buffers de mapeo de memoria (Inhabilitar en Windows)** | Activa *memory-mapped I/O* para leer el shapefile más rápido aprovechando el caché del sistema operativo. En Linux/macOS mejora el rendimiento con archivos grandes; en Windows puede bloquear el archivo e impedir su edición mientras GeoServer lo tiene abierto, por eso se recomienda desactivarlo en ese sistema operativo. |
-
-> **Nota:** un almacén de shapefiles (carpeta) puede contener **varios** archivos `.shp`; cada uno se publica como una capa independiente. Un almacén de un único archivo `.shp` publica exactamente una capa.
-
-### 2.1 Panorama general: familias de almacenes en GeoServer
-
-Al hacer clic en *Add new store*, GeoServer separa las opciones en tres grupos. Conocer esta clasificación ayuda a elegir el tipo correcto antes de entrar en detalle de parámetros:
-
-| Familia | Qué conecta | Ejemplos |
-|---|---|---|
-| **Vector Data Sources** | Datos con geometría discreta (puntos, líneas, polígonos) | Shapefile, Directory of shapefiles, **PostGIS**, **PostGIS (JNDI)**, GeoPackage, Oracle NG, Microsoft SQL Server, Web Feature Server (NG) |
-| **Raster Data Sources** | Imágenes/superficies continuas (ortofotos, DEM, satelitales) | GeoTIFF, ImageMosaic, WorldImage, ArcGrid, GeoPackage (ráster), ImagePyramid |
-| **Cascaded stores (servicios remotos)** | Servicios OGC de **otro** servidor que GeoServer reexpone como si fueran propios | Web Feature Server (NG), Web Map Server (WMS Store), Web Map Tile Server (WMTS Store) |
-
-A continuación se detalla cada tipo relevante para el curso, con sus campos de conexión.
-
-### 2.2 PostGIS (almacén estándar)
-
-**PostGIS** es la base de datos espacial de código abierto sobre PostgreSQL, y es el almacén más usado en proyectos SIG profesionales, porque permite consultas espaciales avanzadas (a diferencia del shapefile, que es solo un archivo plano). GeoServer crea internamente un **pool de conexiones** hacia la base de datos (ver sección 2.4).
-
-**Información básica del almacén** — mismos campos que cualquier almacén: Espacio de trabajo, Nombre del origen de datos, Descripción, Habilitado.
-
-**Parámetros de conexión**
-
-| Campo | Descripción |
-|---|---|
-| **host** | Dirección o nombre del servidor donde corre PostgreSQL/PostGIS (ej. `localhost`, o la IP de la VM Debian 13 en el laboratorio, `192.168.X.X`). |
-| **port** | Puerto TCP del servicio PostgreSQL. Por defecto `5432`. |
-| **database** | Nombre de la base de datos a la que se conecta (ej. `bolivia_sig`). |
-| **schema** | Esquema dentro de esa base (ej. `public`). Es **muy recomendable** especificarlo siempre: si se deja vacío, GeoServer listará tablas de todos los esquemas visibles para el usuario, lo cual es lento y puede exponer tablas no deseadas. |
-| **user / passwd** | Credenciales de conexión. Deben tener al menos permiso de lectura (`SELECT`) sobre las tablas a publicar; si se quiere edición vía WFS-T, además `INSERT`/`UPDATE`/`DELETE`. |
-| **Expose primary keys** | Si se activa, el valor de la clave primaria de cada tabla se expone como atributo de la capa, lo que facilita construir filtros CQL por ID. No permite modificar ese valor vía WFS-T (cualquier intento se ignora silenciosamente). |
-| **Loose bbox** | Si se activa, el filtro espacial `BBOX` solo compara contra el **rectángulo envolvente** de cada geometría (usando el índice espacial), sin verificar la geometría exacta. Es mucho más rápido, pero puede incluir features que en realidad no intersectan el área exacta. Recomendado para WMS (visualización); **no recomendado** para WFS con filtrado BBOX estricto. |
-| **Estimated extends** | Usa la información ya calculada por el índice espacial de PostGIS para estimar rápidamente la extensión (bounding box) de la tabla, en lugar de recorrer todas las filas. Acelera mucho el cálculo del *Native Bounding Box* en capas grandes. |
-| **fetch size** | Cantidad de registros que se traen en cada viaje de red hacia la base de datos (por defecto 1000). Un valor muy bajo (<50) penaliza el rendimiento por la latencia de red repetida; un valor muy alto puede consumir demasiada memoria del proceso de GeoServer. |
-| **Connection timeout** | Segundos que el pool espera antes de desistir al intentar obtener una conexión nueva (por defecto 20). |
-| **min connections / max connections** | Tamaño mínimo y máximo del pool de conexiones reservado para este almacén (por defecto 1 y 10). Cada almacén PostGIS mantiene su **propio pool**; si se crean muchos almacenes hacia la misma base, el total de conexiones abiertas puede acercarse al límite del servidor PostgreSQL (por defecto 100). |
-| **validate connections** | Verifica que una conexión tomada del pool siga siendo válida antes de usarla (protege contra cortes de red o timeouts del servidor), a cambio de una pequeña penalización de rendimiento por la consulta de verificación. |
-| **Test while idle / Evictor tests per run / Max connection idle time / Evictor run periodicity** | Parámetros avanzados que controlan un proceso en segundo plano (*evictor*) que revisa periódicamente las conexiones inactivas del pool y cierra las que llevan demasiado tiempo sin uso, liberando recursos. Solo se recomienda tocarlos en instalaciones con mucho tráfico o problemas de conexiones "zombis". |
-| **preparedStatements** | Usa *prepared statements* SQL en vez de consultas construidas como texto. Ventaja: elimina el riesgo de inyección SQL a través de filtros CQL. Con PostGIS **se recomienda dejarlo desactivado**, porque PostgreSQL puede optimizar mejor el plan de consulta espacial (decidir entre escaneo secuencial o uso del índice espacial) cuando ve el valor real del BBOX en cada consulta. |
-| **Encode functions** | Permite que ciertas funciones usadas en filtros CQL se traduzcan a funciones nativas de PostgreSQL (más eficiente) en vez de evaluarse en memoria dentro de GeoServer. |
-
-> **Requisito de edición (WFS-T):** una tabla PostGIS solo es editable desde GeoServer si tiene **clave primaria**. Sin ella, la capa se sirve en modo solo lectura.
-> **Rendimiento:** siempre crear un **índice espacial** (`CREATE INDEX ... USING GIST (geom)`) en la columna de geometría; sin él, cualquier consulta por extensión será lenta sin importar la configuración del almacén.
-
-**Ejemplo ARTECLAB:** almacén `bolivia_catastro` → host `192.168.X.X` (VM del laboratorio), puerto `5432`, base `geo_bolivia`, esquema `public`, con *Loose bbox* activado (el uso principal es visualización WMS en el geovisor) y *preparedStatements* desactivado.
-
-### 2.3 PostGIS (JNDI)
-
-Variante del almacén PostGIS donde **GeoServer no administra el pool de conexiones directamente**; en su lugar, delega esa tarea al contenedor de aplicaciones (**Tomcat**), que expone el pool mediante **JNDI** (*Java Naming and Directory Interface*, un mecanismo estándar de Java para "buscar" recursos configurados por nombre).
-
-**Parámetros de conexión**
-
-| Campo | Descripción |
-|---|---|
-| **jndiReferenceName** | Nombre lógico del recurso JNDI configurado en Tomcat (ej. `java:comp/env/jdbc/geo_bolivia`), en vez de host/puerto/usuario/contraseña directos. |
-| **schema** | Igual que en PostGIS estándar: el esquema dentro de la base. |
-| El resto de parámetros de comportamiento (**Loose bbox**, **Estimated extends**, **Expose primary keys**, etc.) | Se configuran igual que en el almacén PostGIS estándar. |
-
-**¿Cuándo usar JNDI en vez de PostGIS estándar?**
-
-| Escenario | Recomendación |
-|---|---|
-| Un solo servidor GeoServer, pocas conexiones a bases distintas | PostGIS estándar es más simple de configurar. |
-| Se quiere que el **administrador de Tomcat** (no el de GeoServer) controle credenciales y límites del pool, por políticas de seguridad de la organización | PostGIS (JNDI). |
-| Varias capas/almacenes distintos deben **compartir un mismo pool de conexiones** hacia la misma base (evitando abrir un pool separado por cada esquema/almacén) | PostGIS (JNDI), configurando el `<Resource>` una sola vez en `server.xml` o `context.xml` de Tomcat. |
-| Se requiere reemplazar credenciales sin tocar la configuración de GeoServer (rotación de contraseñas gestionada a nivel de infraestructura) | PostGIS (JNDI). |
-
-**Requisito de instalación:** el driver JDBC de PostgreSQL debe colocarse en `$TOMCAT_HOME/lib` (no en `WEB-INF/lib` de GeoServer), y el `<Resource>` JNDI debe declararse en la configuración de Tomcat (`context.xml` o `server.xml`) antes de crear el almacén en GeoServer.
-
-### 2.4 Pool de conexiones (Connection Pooling) — concepto transversal
-
-Aplica a **todo almacén respaldado por una base de datos** (PostGIS, PostGIS JNDI, Oracle, SQL Server). Cada vez que GeoServer necesita leer datos de una tabla, primero necesita una conexión abierta hacia la base; abrir una conexión nueva tiene un costo de tiempo no despreciable. Un **pool de conexiones** mantiene conexiones ya abiertas y listas, de modo que solo la primera petición paga ese costo — las siguientes reutilizan una conexión existente. Esto es clave para el rendimiento de cualquier curso o demo en vivo donde varios estudiantes consultan el mismo servidor simultáneamente.
-
-### 2.5 GeoPackage
-
-**GeoPackage** (`.gpkg`) es un estándar OGC basado en **SQLite**: un único archivo puede contener múltiples capas **vectoriales y ráster** a la vez, con sus propios índices espaciales, a diferencia del shapefile (que necesita varios archivos por capa y solo admite un tipo de geometría por capa).
-
-**Parámetros de conexión**
-
-| Campo | Descripción |
-|---|---|
-| **database** | Ruta al archivo `.gpkg` en el sistema de archivos del servidor (ej. `file:data/geopackages/bolivia_sig.gpkg`). |
-| **Otros parámetros de rendimiento** (Batch insert size, etc.) | Similares en espíritu a los de PostGIS, pero aplicados sobre SQLite en lugar de PostgreSQL. |
-
-**Ventaja pedagógica:** para el curso, un único `.gpkg` puede sustituir a toda una carpeta de shapefiles sueltos (departamentos, municipios, ríos, ciudades), simplificando la distribución de material a los estudiantes: un solo archivo autocontenido en vez de decenas de archivos `.shp/.dbf/.shx/.prj`.
-
-### 2.6 Almacenes en cascada (servicios remotos: WFS, WMS, WMTS)
-
-Un almacén "en cascada" no lee un archivo ni una base de datos: se conecta a un **servicio OGC de otro servidor** y lo reexpone como si fuera propio. Es útil cuando se quiere combinar datos de terceros (por ejemplo, GeoBolivia o INRA Bolivia) con las capas propias del curso, sin copiar los datos originales.
-
-| Tipo de almacén | Qué hace | Parámetro principal |
-|---|---|---|
-| **Web Feature Server (NG)** — WFS en cascada | Se conecta a un WFS remoto y trae sus **features** (geometría + atributos), permitiendo aplicarles estilos y combinarlos con capas propias en un mismo GetMap. | **Capabilities URL** — la URL del `GetCapabilities` del servicio remoto, ej. `https://geo.gob.bo/geoserver/ows?service=wfs&version=1.0.0&request=GetCapabilities`. |
-| **Web Map Server (WMS Store)** — WMS en cascada | Se conecta a un WMS remoto y reexpone sus capas como **imágenes ya renderizadas** por el servidor de origen (GeoServer no puede reestilizarlas, solo las reenvía o recombina como imagen). Útil como capa base de fondo. | **Capabilities URL** del WMS remoto (ej. `.../wms?service=WMS&version=1.3.0&request=GetCapabilities`). |
-| **Web Map Tile Server (WMTS Store)** — WMTS en cascada | Igual que el WMS en cascada, pero el remoto entrega **teselas pre-cacheadas**, lo cual es más rápido para mapas base de referencia (ej. una capa base de OpenStreetMap servida como WMTS). | **Capabilities URL** del WMTS remoto. |
-
-**Por qué usar cascada en vez de copiar el dato:** si GeoBolivia actualiza su capa de `municipios`, el almacén en cascada de ARTECLAB refleja el cambio automáticamente en la siguiente petición, sin que el instructor tenga que volver a descargar y republicar el shapefile.
-
-**Limitación importante para explicar en clase:** un WMS/WMTS en cascada entrega **imágenes**, no geometría; por lo tanto no se puede aplicar un estilo SLD propio ni hacer consultas GetFeatureInfo con la misma granularidad que sobre datos vectoriales propios. Un WFS en cascada sí trae geometría real y admite reestilizado.
-
-### 2.7 Almacenes ráster (Coverage Stores)
-
-Se agrupan aparte porque publican **coberturas** (imágenes georreferenciadas continuas), no *features* discretos.
-
-| Tipo | Uso típico |
-|---|---|
-| **GeoTIFF** | Un único archivo `.tif` georreferenciado (ortofoto, DEM). Es el formato ráster más simple de publicar: un archivo, una capa. |
-| **WorldImage** | Imágenes comunes (JPEG, PNG, TIFF) acompañadas de un archivo de mundo (`.jgw`, `.pgw`, etc.) que contiene la georreferenciación por separado. |
-| **ImageMosaic** | Publica **muchos** archivos ráster (ej. un conjunto de ortofotos por cuadrante, o imágenes satelitales de distintas fechas) como si fueran una sola capa continua. GeoServer genera un índice (por defecto un shapefile interno) que asocia cada archivo con su extensión geográfica, y solo carga en cada petición los archivos que realmente intersectan el área solicitada. Es la base técnica para series temporales ráster (ej. precipitación mensual) combinadas con la pestaña Dimensiones. |
-| **ArcGrid** | Formato de rejilla ASCII de ESRI, común en datos de modelos hidrológicos o de elevación de fuentes académicas/gubernamentales. |
-| **GeoPackage (ráster)** | El mismo archivo `.gpkg` de la sección 2.5 puede alojar también capas ráster (teselas pre-generadas dentro del propio GeoPackage). |
-| **ImagePyramid** | Estructura de varias resoluciones del mismo ráster (similar a un "mapa de bits piramidal"), pensada para servir imágenes muy grandes con buen rendimiento a distintos niveles de zoom sin recurrir a GeoWebCache. |
-
-**Ejemplo ARTECLAB:** una serie de ortofotos de un municipio boliviano, entregadas por cuadrantes, se publica como **ImageMosaic** en vez de crear un GeoTIFF por cuadrante; el estudiante ve una sola capa continua, y GeoServer decide internamente qué archivos cargar según el área visible del mapa.
+El camino es este: **espacio de trabajo → almacén de datos → capa → grupo de capas → estilo.** Cinco piezas. Vamos con la primera.
 
 ---
 
-## 3. Capas (Layers)
+## 1. Espacio de trabajo — el casillero con nombre
 
-Una **capa** es la unidad publicable: convierte un recurso de un almacén de datos (una tabla, un shapefile, una banda ráster) en un servicio consumible vía WMS/WFS/WCS. Al editar una capa existente se presentan varias pestañas.
+**[EN PANTALLA: menú Workspaces → Add new workspace]**
 
-### 3.1 Pestaña **Datos**
+Antes de subir un solo dato, GeoServer te pide algo muy simple: dónde vas a guardarlo.
 
-Es la pestaña activa por defecto y define los parámetros propios del recurso.
+Piensa en el espacio de trabajo como el nombre del cajón. Si tienes dos proyectos —división política de Bolivia y catastro de La Paz— y guardas todo sin cajones, tarde o temprano vas a tener dos capas llamadas `limites` peleándose por el mismo nombre. Con espacios de trabajo, eso jamás pasa: una vive en `mapas_bolivia`, la otra en `catastro_lapaz`, y cada una se llama por su nombre completo: `mapas_bolivia:limites`, `catastro_lapaz:limites`.
 
-**Información básica / metadatos**
-- **Name** — identificador usado en las peticiones de servicio (debe ser único dentro del espacio de trabajo).
-- **Title / Abstract / Keywords** — metadatos legibles que aparecen en el documento de capacidades (GetCapabilities) y ayudan a los clientes SIG a listar la capa de forma comprensible.
+Al crear uno, GeoServer te pide cuatro campos, y los cuatro tienen truco.
 
-**Vínculos a metadatos y Enlaces de datos** *(ver imagen adjunta)*
-- **Vínculos a metadatos (Metadata links):** permiten enlazar la capa a un documento de metadatos externo, en los estándares **FGDC** (Federal Geographic Data Committee, EE. UU.) o **TC211** (ISO 19115, estándar internacional de metadatos geográficos). Aparecen en el GetCapabilities para que un cliente SIG externo pueda descargar la ficha de metadatos completa de la capa. *Nota importante mostrada por GeoServer:* en las capacidades de WMS 1.1.1 solo se listan enlaces de tipo FGDC y TC211; otros formatos no se anuncian ahí.
-- **Enlaces de datos (Data links):** enlaces a un recurso de descarga de los datos crudos (por ejemplo, un `.zip` con el shapefile original en un repositorio). Es informativo: no controla el servicio, solo se publica en las capacidades para que el usuario final sepa dónde conseguir el dato fuente.
+**Name.** El nombre corto del cajón, sin espacios. Cumple dos funciones a la vez: se convierte en el **prefijo** de cada capa que guardes ahí adentro, y también es el prefijo XML que GeoServer usa al generar los documentos de capacidades —esos GetCapabilities que cualquier cliente SIG lee para saber qué hay disponible.
 
-**Sistema de referencia (CRS/SRS)**
-- **Native SRS** — el sistema de coordenadas en el que está almacenado realmente el dato.
-- **Declared SRS** — el sistema de coordenadas que GeoServer **anuncia** a los clientes.
-- **SRS Handling** — qué hacer cuando ambos difieren:
-  - *Force declared* (por defecto): impone el SRS declarado sobre el nativo. Es la opción recomendada porque el código declarado viene de la base EPSG con información completa (área de validez, rutas de transformación).
-  - *Reproject native to declared*: reproyecta realmente los datos al SRS declarado.
-  - *Keep native*: conserva el SRS nativo tal cual, ignorando el declarado.
+**Namespace URI.** La que más confunde al principio. Parece una URL, pero **no lo es**: no necesita llevarte a ningún sitio web real, solo necesita ser única en todo tu servidor. Es como el ISBN de un libro —un código que identifica sin ambigüedad, no una dirección a la que vayas a tocar la puerta. GeoServer la usa internamente para declarar el `xmlns` de las respuestas WFS y WMS, y para diferenciar recursos que, aunque compartan nombre, pertenezcan a espacios distintos. Mi recomendación de siempre: usa tu propio dominio con un sufijo claro, por ejemplo `http://www.arteclab.org/mapas_bolivia`.
 
-**Bounding Box (extensión)**
-- **Native Bounding Box** — extensión de los datos en el SRS nativo/declarado. Se genera con el botón *Compute from data* (lee la geometría real) o *Compute from SRS bounds* (usa el área de validez teórica del SRS).
-- **Lat/Lon Bounding Box** — la misma extensión pero expresada siempre en coordenadas geográficas (EPSG:4326), obligatoria en toda capa WMS. Se calcula con *Compute from native bounds*.
+**Espacio de trabajo por defecto.** Solo puede haber uno en todo el servidor. Las capas que viven ahí se pueden pedir **sin escribir el prefijo**. Es la diferencia entre `mapas_bolivia:municipios` y simplemente `municipios` directamente en la URL del servicio.
 
-**Control de geometrías curvas** *(ver imagen adjunta)*
-- **Geometrías lineales pueden contener arcos circulares:** informa al codificador GML de que la capa puede tener curvas verdaderas (arcos), para que las codifique como `gml:Curve` en vez de `gml:LineString`. Solo aplica a fuentes que soporten geometría curva (Oracle Spatial, *Property DataStore*); en un shapefile o PostGIS estándar normalmente queda sin marcar.
-- **Tolerancia de linealización:** solo es relevante si la capa sí tiene geometrías curvas; define cuánto se puede "aplanar" un arco a segmentos rectos cuando un cliente no soporta curvas.
+**Isolated Workspace.** El más avanzado de los cuatro. Cuando lo activas, ese espacio de trabajo **deja de aparecer en los servicios globales** de GeoServer —WMS, WFS, WCS generales— y en su documento de capacidades global. Solo es visible y consultable a través de su propio **servicio virtual**, algo como `.../geoserver/mapas_bolivia/wms`. ¿Para qué sirve en la vida real? Para cuando necesitas que **dos** espacios de trabajo distintos reutilicen el **mismo** Namespace URI sin pisarse entre sí —uno de los dos debe quedar aislado. Pasa más seguido de lo que crees cuando administras varios proyectos o clientes en un mismo servidor.
 
-**Detalles del Feature Type (solo capas vectoriales)**
-Es la tabla de atributos detectados automáticamente desde la fuente de datos. En el ejemplo adjunto:
+`[CTA discreto]` Esta es exactamente la clase de decisión de arquitectura que marca la diferencia entre un GeoServer que crece ordenado durante años y uno que en seis meses es un cajón de sastre imposible de mantener —y es de las primeras cosas que ordenamos juntos en el curso completo de GeoServer.
 
-| Propiedad | Tipo | Nulo permitido |
-|---|---|---|
-| `the_geom` | MultiPolygon | true |
-| `FIRST_NOM_` | String | true |
-| `COUNT` | Long | true |
-| `COD` | String | true |
-
-- **`the_geom`** es el atributo geométrico (en shapefiles casi siempre se llama así por defecto).
-- **Customize attributes** permite editar manualmente tipo, alias o nulabilidad de un atributo, sin modificar el dato fuente.
-- **Recargar feature type (Reload feature type)** — vuelve a leer el esquema desde el origen. Se usa cuando el shapefile fue editado externamente en QGIS/ArcGIS (se agregaron o quitaron campos) y GeoServer aún tiene el esquema antiguo en caché; no hace falta recrear la capa, solo recargar.
-
-**Feature Filtering**
-- **Restringir las features de la capa mediante filtro CQL:** aplica un filtro **CQL** (*Common Query Language*, el lenguaje de consulta propio de GeoServer/GeoTools) que limita qué features se publican, sin tocar el dato original. Ejemplo boliviano: para publicar solo el departamento de Cochabamba desde una capa nacional de `departamentos`:
-  ```
-  DEPARTAMEN = 'COCHABAMBA'
-  ```
-  El filtro **solo afecta lecturas**: si la capa admite edición vía WFS-T y se inserta una entidad que no cumple el filtro, se guarda en el almacén igual, pero no aparecerá en las salidas del servicio.
-
-### 3.2 Pestaña **Publicación**
-
-Configura cómo se expone la capa a nivel de servicio (HTTP, WMS, WFS, WCS).
-
-- **Enabled** — si está desactivado, la capa no responde a ninguna petición (pero sigue en la configuración/REST).
-- **Advertised** — si está desactivado, la capa sigue funcionando ante peticiones directas (GetMap, GetFeature) pero **no aparece** en el documento de capacidades ni en el Layer Preview. Útil para capas auxiliares que solo se consumen dentro de un grupo de capas.
-- **HTTP Settings (caché de respuesta):** *Response Cache Headers* evita que el navegador/cliente vuelva a pedir el mismo tile dentro del *Cache Time* (por defecto 3600 s = 1 hora).
-- **WMS Settings:**
-  - *Default Style / Additional styles* — estilo que se aplica cuando el cliente no especifica uno, y estilos alternativos disponibles para el usuario.
-  - *Default rendering buffer* — margen (en píxeles) agregado alrededor del área solicitada al renderizar, útil para símbolos grandes o etiquetas que se recortarían en el borde del tile.
-  - *Attribution* (texto, enlace, logo) — créditos del proveedor del dato, visibles en algunos visores.
-  - *Root Layer in Capabilities* — controla si esta capa aparece envuelta en el elemento raíz `<Layer>` del documento de capacidades o como raíz directa (relevante solo si es la única capa expuesta en ese servicio).
-- **WFS Settings** (si el recurso es vectorial) — límite máximo de features por respuesta (*Per-Request Feature Limit*) y máximo de decimales en salidas GML, además de la lista de SRS alternativos anunciados (OtherSRS).
-
-### 3.3 Pestaña **Dimensiones**
-
-Permite habilitar las dimensiones estándar **TIME** y **ELEVATION** (y dimensiones personalizadas) definidas en WMS 1.1.1/1.3.0, útiles para series temporales (ej. imágenes satelitales mensuales) o datos con profundidad/altitud.
-
-| Campo | Descripción |
-|---|---|
-| **Attribute / End attribute** | Atributo del feature que contiene el valor de la dimensión (y, opcionalmente, el atributo de fin de rango). |
-| **Presentation** | Cómo se listan los valores en el GetCapabilities: *List* (todos los valores discretos), *Interval/resolution* (rango con paso fijo) o *Continuous interval* (rango continuo). |
-| **Default value** | Estrategia para el valor por defecto cuando el cliente no lo especifica: valor más pequeño, más grande, más cercano a un valor de referencia, o un valor de referencia fijo. |
-| **Nearest match** | Si se habilita, GeoServer acepta el valor más cercano disponible cuando el cliente pide un valor exacto que no existe. |
-
-Ejemplo de uso boliviano: una capa de precipitación mensual de GeoBolivia con atributo `fecha` como dimensión TIME, presentación *List*, valor por defecto "el más reciente disponible".
-
-### 3.4 Pestaña **Cacheado de Teselas (Tile Caching)**
-
-Configura el **GeoWebCache** integrado, que pre-genera y almacena "teselas" (tiles) de imagen para servir mapas mucho más rápido que renderizando bajo demanda cada vez (WMTS/TMS).
-
-| Concepto | Descripción |
-|---|---|
-| **Enabled** | Activa el cacheo de teselas para esta capa específica. |
-| **Gridsets / Available gridsets** | Esquemas de teselado (cuadrícula de zoom y proyección) que se cachearán, ej. `EPSG:900913` (Web Mercator, el usado por Google Maps/OpenStreetMap) o `EPSG:4326` (geográfico). |
-| **Formatos de imagen** | Formatos en que se guardan las teselas (PNG, JPEG, etc.), configurables por tipo de capa (vector, ráster, grupo). |
-| **Metatiling** | En vez de generar una tesela a la vez, GeoServer renderiza un bloque más grande de teselas juntas (por defecto 4×4) y luego lo recorta. Esto evita que etiquetas o símbolos queden cortados justo en el borde de una tesela, y acelera el *seeding* masivo. |
-| **Gutter** | Margen extra (píxeles) alrededor de cada tesela al renderizar, complementario al metatiling, para reducir problemas de recorte en geometrías/etiquetas de borde. |
-| **Parameter Filters** | Permiten cachear variantes de la misma capa según parámetros WMS como `STYLES` o `TIME` (por ejemplo, una caché distinta por cada estilo alternativo). |
-| **Seed / Truncate / Empty** | *Seed* pre-genera teselas para una zona y rango de zoom (recomendable antes de una clase o demo en vivo, para que la capa cargue instantáneamente). *Truncate* elimina teselas de niveles de zoom específicos. *Empty* borra toda la caché de la capa. |
-
-> **Concepto clave:** cachear no cambia el dato, solo acelera su entrega. Si el shapefile o la tabla PostGIS cambian, hay que volver a *seedear* (o el usuario verá teselas desactualizadas hasta que expiren).
-
-### 3.5 Pestaña **Seguridad**
-
-Define **reglas de acceso a datos** a nivel de capa: qué roles pueden leer (`READ`), escribir (`WRITE`) o administrar (`ADMIN`) la capa, dentro del subsistema de seguridad de GeoServer (integrado con su motor de autenticación/autorización). Estas reglas se combinan con las definidas a nivel de espacio de trabajo (más generales) y a nivel global; la regla más específica que aplica a un rol es la que prevalece. Es el mecanismo típico para, por ejemplo, dejar visibles las capas de división política pero restringir la edición o consulta de una capa catastral sensible (predios INRA) solo a un rol `editor_geoserver`.
+Con el espacio de trabajo listo, ya tenemos el cajón. Ahora necesitamos algo que meter adentro.
 
 ---
 
-## 4. Grupos de capas (Layer Groups)
+## 2. Almacén de datos — el puente hacia tu información
 
-Un **grupo de capas** agrupa varias capas (u otros grupos) bajo un único nombre, para poder pedirlas en una sola petición WMS en vez de listar cada capa individualmente. También fija un **orden de dibujo** consistente y puede asignar estilos alternativos por capa dentro del grupo.
+**[EN PANTALLA: Data → Stores → Add new store, mostrando el listado de tipos disponibles]**
 
-### Modos disponibles
+Aquí hay un malentendido que quiero desarmar de entrada: **el almacén de datos no publica nada todavía.** Lo único que hace es decirle a GeoServer "aquí hay información, y así es como te conectas a ella". Publicar viene después, con las capas.
 
-| Modo | Comportamiento |
-|---|---|
-| **Single (sencillo)** | Se expone como una sola capa con nombre propio (alias de la lista de capas). Las capas individuales **siguen** apareciendo como entradas de nivel superior en el GetCapabilities. |
-| **Opaque (opaco)** | Igual que *Single*, pero las capas internas **no** se listan por separado en las capacidades; el cliente solo ve el grupo como un todo, útil para presentar un "mapa base" como una sola unidad sin exponer sus componentes. |
-| **Named tree (árbol con nombre)** | Se expone como una jerarquía con nombre propio; el cliente puede solicitar tanto el grupo completo como cada subcapa. |
-| **Container tree (árbol contenedor)** | Aparece en las capacidades solo como categoría organizativa, **sin nombre invocable** — no se puede pedir como capa única, solo sirve para agrupar visualmente en el árbol de capas del cliente. |
-| **Earth Observation (EO) tree** | Modo especializado para el perfil WMS de observación terrestre: no renderiza directamente las capas anidadas, solo expone una "capa de vista previa" (*Root Layer*). |
+GeoServer organiza los almacenes en tres grandes familias:
 
-### Otros campos relevantes
+- **Fuentes vectoriales** —datos con geometría discreta: puntos, líneas, polígonos. Shapefile, Directorio de shapefiles, PostGIS, PostGIS vía JNDI, GeoPackage, Oracle NG, SQL Server, Web Feature Server en cascada.
+- **Fuentes ráster** —imágenes y superficies continuas: GeoTIFF, ImageMosaic, WorldImage, ArcGrid, GeoPackage ráster, ImagePyramid.
+- **Servicios en cascada** —no son datos tuyos, son servicios de **otro** servidor que GeoServer reexpone: Web Feature Server, Web Map Server, Web Map Tile Server.
 
-- **Bounds / Projection** — el grupo reproyecta automáticamente todas sus capas a una proyección común, aunque las capas de origen tengan SRS distintos entre sí.
-- **Painter's model (modelo del pintor)** — el orden de la lista de capas define el orden de dibujo: la primera capa se pinta primero (queda debajo), la última se pinta al final (queda arriba). Por eso conviene poner primero los mapas base (ej. límites departamentales) y al final las capas puntuales (ej. ciudades, puntos de interés).
-- **Layer Group Style** — permite definir un estilo alterno para todo el grupo (una combinación distinta de estilos por capa), disponible solo en modo *Single* u *Opaque*.
-- **Enabled / Advertised / Queryable** — mismo significado que en una capa individual; *Queryable* controla si el grupo responde a GetFeatureInfo (por defecto lo hace si al menos una capa interna es consultable).
-- **Security** — igual que en capas, reglas de acceso por rol a nivel del grupo completo.
+Vamos por los que de verdad vas a usar para publicar mapas reales.
 
-**Ejemplo boliviano:** un grupo de capas `mapa_base_bolivia` en modo *Opaque*, con orden: `departamentos` (fondo) → `municipios` → `rios_principales` → `ciudades_capitales` (encima de todo), expuesto como una sola capa consumible desde el visor OpenLayers del geovisor ARTECLAB.
+### 2.1 Shapefile en carpeta — el punto de partida de casi todos
+
+**[EN PANTALLA: formulario de Directory of shapefiles con los campos ya llenos]**
+
+Hay algo que casi nadie te dice a tiempo: **un shapefile nunca es un solo archivo.** Es un conjunto —`.shp`, `.dbf`, `.shx`, y el que de verdad importa y que la gente olvida: el `.prj`. Sin ese archivo, GeoServer puede quedarse sin saber en qué sistema de coordenadas está parado tu dato, y ahí empiezan los mapas que "aparecen" en medio del océano.
+
+La **información básica del almacén** tiene cinco campos:
+
+- **Espacio de trabajo** —a qué cajón queda asociado; toda capa publicada desde este almacén hereda ese prefijo.
+- **Nombre del origen de datos** —el identificador de la conexión, no de la capa. Aquí, por ejemplo, `origen_mapas_bolivia`.
+- **Descripción** —texto libre para documentar la fuente. En un curso, anota siempre de dónde salió el dato: "Shapefiles división política — GeoBolivia 2024".
+- **Habilitado.** Y aquí me quiero detener, porque es más potente de lo que parece. Desmarcarlo no borra nada: apaga **todo el almacén de golpe**, todas sus capas dejan de responder a cualquier servicio, pero siguen visibles en la configuración, esperando. Es tu botón de pausa de emergencia. Lo uso todo el tiempo cuando estoy reemplazando un shapefile por una versión actualizada: apago el almacén, cambio los archivos, recargo el feature type, y recién ahí vuelvo a encenderlo. Cero riesgo de que un usuario reciba datos a medio escribir. Y ojo, esto es distinto a apagar una capa individual —eso apaga solo esa capa, el resto del almacén sigue funcionando— y también distinto a "Advertised" de una capa, que sigue respondiendo pero desaparece del listado público.
+- **Auto disable on connection failure.** El hermano protector del anterior. Si tu fuente de datos empieza a fallar de forma repetida —típico en bases de datos remotas o conexiones VPN inestables— GeoServer se apaga solo antes de que ese fallo se convierta en una cascada de reintentos saturando el log y demorando todo el servidor. En un directorio de shapefiles locales casi nunca hace falta, porque la "conexión" es solo acceso a disco; donde de verdad importa es en PostGIS, PostGIS JNDI y en cualquier almacén en cascada.
+
+Los **parámetros de conexión** son cuatro:
+
+- **Directorio de shapefiles** —la ruta, en formato `file:`, a la carpeta que contiene los `.shp`. Por ejemplo `file:data/shapefiles/Cartografia/mapaBases/divisionPolitica`.
+- **Conjunto de caracteres del DBF** —la codificación de texto del archivo de atributos. `ISO-8859-1` resuelve el noventa por ciento de los casos con datos en español: si tus nombres de municipios aparecen con símbolos raros en vez de tildes o eñes, el problema casi siempre es este campo mal configurado.
+- **Crear índice espacial si no existe o está desactualizado** —genera o regenera el índice que acelera cualquier consulta por extensión geográfica. Déjalo activo salvo que administres el índice por fuera.
+- **Usar buffers de mapeo de memoria** —acelera la lectura aprovechando el caché del sistema operativo. En Linux y macOS, adelante; en Windows, la propia GeoServer te lo advierte: puede bloquear el archivo mientras está abierto, así que ahí conviene desactivarlo.
+
+Un detalle final que vale oro: un almacén de shapefiles en carpeta puede contener **varios** `.shp`, y cada uno se convertirá en una capa independiente. Un almacén de un único archivo publica exactamente una capa.
+
+### 2.2 PostGIS — cuando el shapefile se te queda chico
+
+**[EN PANTALLA: formulario de PostGIS con host, port, database, schema]**
+
+Llega un momento en todo proyecto serio en el que necesitas consultas espaciales de verdad, edición en tiempo real, y varias personas trabajando sobre el mismo dato a la vez. Ahí entra PostGIS: la base de datos espacial de código abierto construida sobre PostgreSQL, y el estándar de facto en proyectos SIG profesionales.
+
+Los campos básicos de conexión son los que esperas: **host** —la dirección del servidor, por ejemplo la IP de la VM de laboratorio—; **port**, por defecto `5432`; **database**, el nombre de la base; **schema**, el esquema dentro de esa base —muy recomendable especificarlo siempre, porque si lo dejas vacío GeoServer va a listar tablas de todos los esquemas visibles, lo cual es lento y puede exponer tablas que no querías mostrar—; y **user / passwd**, con permisos de lectura como mínimo, y de escritura si quieres edición vía WFS-T.
+
+Ahora vienen los parámetros que separan a quien conecta PostGIS "porque toca" de quien lo configura pensando en cómo se va a usar de verdad. Uno por uno:
+
+- **Expose primary keys.** Expone el valor de la clave primaria de cada tabla como un atributo más de la capa, lo que facilita construir filtros por identificador. Importante: esto no permite modificar ese valor vía WFS-T, cualquier intento se ignora en silencio, es solo para tu comodidad al filtrar.
+- **Loose bbox.** Cuando lo activas, el filtro espacial solo compara contra el rectángulo que envuelve cada geometría, apoyado en el índice espacial, sin verificar la forma exacta. Es mucho más rápido, a costa de exactitud. Para visualización WMS, actívalo sin miedo. Si tu capa se consume por WFS con filtrado estricto por área, mejor no.
+- **Estimated extends.** Usa la información ya calculada por el índice espacial para estimar la extensión de la tabla en vez de recorrer cada fila una por una. Acelera muchísimo el cálculo del bounding box en capas grandes.
+- **fetch size.** Cuántos registros trae GeoServer en cada viaje de red hacia la base, por defecto mil. Muy bajo —menos de cincuenta— y la latencia de red te penaliza; muy alto, y puedes consumir memoria de más y arriesgarte a un error de memoria agotada.
+- **Connection timeout.** Segundos que el pool espera antes de rendirse al pedir una conexión nueva, veinte por defecto.
+- **min connections / max connections.** El tamaño mínimo y máximo del grupo de conexiones reservado para este almacén específico, por defecto uno y diez. Ojo con esto: cada almacén PostGIS abre su propio grupo, así que si creas muchos almacenes hacia la misma base, el total de conexiones abiertas puede acercarse al límite que tenga configurado tu servidor PostgreSQL, que por defecto suele ser cien.
+- **validate connections.** Verifica que una conexión tomada del grupo siga siendo válida antes de usarla, protegiéndote de cortes de red o timeouts del servidor, a cambio de una pequeña penalización de rendimiento.
+- **Test while idle, Evictor tests per run, Max connection idle time, Evictor run periodicity.** Cuatro parámetros avanzados que trabajan juntos: un proceso en segundo plano revisa periódicamente las conexiones que llevan tiempo sin usarse y las cierra, liberando recursos del servidor. Solo tócalos si administras un servidor con mucho tráfico o ves conexiones "zombis" acumulándose.
+- **preparedStatements.** Esta sorprende a todos la primera vez: con PostGIS se recomienda **dejarlo desactivado**, porque PostgreSQL optimiza mejor su plan de consulta espacial —decidir entre recorrido secuencial o uso del índice— cuando ve el valor real del área que estás pidiendo, en vez de una plantilla genérica. La ventaja de activarlo, eso sí, es que elimina por completo el riesgo de inyección SQL a través de filtros.
+- **Encode functions.** Permite que ciertas funciones usadas en filtros CQL se traduzcan a funciones nativas de PostgreSQL, más eficientes que evaluarlas dentro de GeoServer.
+
+Dos reglas que no dependen de ningún checkbox: una tabla PostGIS solo es editable desde GeoServer si tiene **clave primaria** —sin ella, la capa queda en modo solo lectura—, y siempre, siempre crea un **índice espacial** con `CREATE INDEX ... USING GIST` sobre la columna de geometría; sin eso, ninguna configuración del almacén te va a salvar del rendimiento lento.
+
+`[CTA discreto]` Este es el punto exacto donde muchos cursos se quedan en la superficie —"conecta tu base de datos y listo"— y donde nosotros vamos más profundo: en el curso de GeoServer armamos el servidor de producción completo, con PostgreSQL, PostGIS y cada uno de estos parámetros ajustados desde cero.
+
+### 2.3 PostGIS vía JNDI — la misma base, otra filosofía de conexión
+
+**[EN PANTALLA: formulario de PostGIS JNDI]**
+
+Existe una segunda forma de conectar exactamente la misma base de datos, y la diferencia no está en el dato: está en **quién administra la conexión**.
+
+Con PostGIS estándar, GeoServer abre y gestiona su propio grupo de conexiones. Con PostGIS vía JNDI —sigla de *Java Naming and Directory Interface*, el mecanismo estándar de Java para "buscar" recursos por nombre— esa responsabilidad se la delegamos al servidor de aplicaciones, a Tomcat. En vez de host, puerto, usuario y contraseña, GeoServer solo pide un **jndiReferenceName**, un nombre lógico como `java:comp/env/jdbc/geo_bolivia`, y Tomcat le entrega una conexión ya lista. El **schema** se configura igual que en la versión estándar, y todos los parámetros de comportamiento que acabamos de ver —Loose bbox, Estimated extends, Expose primary keys— funcionan exactamente igual.
+
+¿Cuándo elegir JNDI en vez de la conexión estándar? Cuando quieres que las credenciales y los límites del grupo de conexiones los controle el administrador de infraestructura, no el de GeoServer. Cuando varias capas necesitan compartir un mismo grupo de conexiones hacia la misma base, en vez de que cada almacén abra el suyo por separado. O cuando necesitas rotar contraseñas sin tocar la configuración de GeoServer, porque esa rotación se gestiona a nivel de Tomcat. Eso sí: el driver JDBC de PostgreSQL debe colocarse en la carpeta de librerías de Tomcat, no en la de GeoServer, y el recurso JNDI debe declararse en la configuración del servidor antes de crear el almacén.
+
+### 2.4 GeoPackage — un archivo, muchas capas
+
+**[EN PANTALLA: un único archivo .gpkg abierto en el explorador de archivos]**
+
+Si el shapefile te obligó siempre a cargar cinco archivos por capa, GeoPackage viene a resolver justo eso. Es un estándar internacional construido sobre SQLite, y en un solo archivo `.gpkg` puedes guardar **varias capas vectoriales y ráster a la vez**, cada una con su propio índice espacial. El único campo de conexión que de verdad importa es **database**: la ruta al archivo, por ejemplo `file:data/geopackages/bolivia_sig.gpkg`.
+
+Para quien enseña o comparte material, esto cambia la vida: en vez de entregar una carpeta con veinte archivos sueltos, entregas un solo archivo autocontenido —departamentos, municipios, ríos, ciudades, todo adentro, cero riesgo de que se pierda un `.prj` en el camino.
+
+### 2.5 Servicios en cascada — mapas que no son tuyos, pero puedes usar
+
+**[EN PANTALLA: formulario de Web Feature Server NG con la URL de capabilities de un servicio remoto]**
+
+Esta es, para mí, una de las funciones más elegantes de GeoServer. Un almacén en cascada no guarda ningún dato propio: se conecta a un servicio de **otro** servidor —de GeoBolivia, de INRA Bolivia, de cualquier institución que publique OGC— y lo reexpone como si fuera tuyo. Si mañana esa institución actualiza su capa de municipios, tu mapa se actualiza solo, sin que vuelvas a descargar ni a republicar nada.
+
+Hay tres variantes, y el campo de conexión en las tres es el mismo: la **Capabilities URL**, la dirección del GetCapabilities del servicio remoto.
+
+- **Web Feature Server, o WFS en cascada.** Trae **geometría real** —no una imagen, sino los datos crudos— así que puedes reestilizarla a tu gusto y combinarla con tus capas propias en un mismo mapa.
+- **Web Map Server, o WMS en cascada.** Trae **imágenes ya renderizadas** por el servidor de origen. GeoServer no puede reestilizarlas, solo las reenvía o las recombina como imagen. Perfectas como mapa base de fondo.
+- **Web Map Tile Server, o WMTS en cascada.** Lo mismo que el WMS, pero entregado como **teselas pre-cacheadas**, más rápido para mapas base de referencia.
+
+La limitación que hay que tener clarísima antes de explicarla en clase: un WMS o WMTS en cascada entrega imágenes, no geometría, así que no se le puede aplicar un estilo propio ni hacer consultas de información con la misma granularidad que sobre datos vectoriales reales. Solo el WFS en cascada te da esa libertad, porque trae el dato de verdad.
+
+### 2.6 Almacenes ráster — cuando el dato es una imagen, no un punto
+
+**[EN PANTALLA: capa de ortofoto o DEM cargada en GeoServer]**
+
+Todo lo anterior habla de geometría discreta. Pero hay otro mundo: el de los datos continuos —ortofotos, modelos de elevación, imágenes satelitales. Aquí GeoServer te da seis opciones:
+
+- **GeoTIFF** —un único archivo `.tif` georreferenciado. El formato más simple: un archivo, una capa.
+- **WorldImage** —imágenes comunes, JPEG, PNG, TIFF, acompañadas de un archivo de mundo aparte que guarda la georreferenciación.
+- **ImageMosaic** —el más interesante para trabajo profesional. Publica decenas o cientos de archivos ráster como si fueran una sola capa continua: ortofotos por cuadrante, o imágenes satelitales de distintas fechas. GeoServer construye un índice interno —por defecto un shapefile— que asocia cada archivo con su extensión geográfica, y en cada petición carga únicamente los archivos que realmente intersectan el área que el usuario está mirando. Es la base técnica detrás de cualquier serie temporal ráster seria, combinada con la pestaña de Dimensiones que vamos a ver más adelante.
+- **ArcGrid** —el formato de rejilla ASCII de ESRI, muy común en datos de modelos hidrológicos o de elevación que vienen de fuentes académicas o gubernamentales.
+- **GeoPackage, en su versión ráster** —el mismo archivo `.gpkg` de hace un momento también puede alojar teselas pre-generadas como capa ráster, dentro del mismo archivo.
+- **ImagePyramid** —una estructura con varias resoluciones del mismo ráster, pensada para servir imágenes muy grandes con buen rendimiento en distintos niveles de zoom, sin depender de GeoWebCache.
+
+Con esto, ya tenemos la conexión hecha. Pero una conexión no es un mapa todavía.
 
 ---
 
-## 5. Estilos (Styles)
+## 3. Capas — donde el dato se convierte en servicio
 
-Un **estilo** define **cómo se dibuja visualmente** una capa (colores, símbolos, grosores, etiquetas, reglas por rango de valores). Es un recurso independiente de la capa: el mismo estilo puede reutilizarse en varias capas, y una capa puede tener varios estilos disponibles para que el cliente elija.
+**[EN PANTALLA: Layers → seleccionar una capa existente, mostrando las cinco pestañas]**
 
-### Lenguajes de estilo soportados
+Si el almacén es el puente hacia tu información, la capa es la puerta que abres al mundo: la unidad que un cliente SIG, un navegador o una app realmente puede pedir. Tiene cinco pestañas, cinco decisiones distintas. Vamos con todas, sin saltarnos ningún campo.
 
-| Lenguaje | Descripción |
-|---|---|
-| **SLD (Styled Layer Descriptor)** | Estándar OGC basado en XML. Es el formato nativo y disponible por defecto sin instalar nada adicional. Es el más verboso pero el más universalmente compatible. |
-| **CSS** | Sintaxis similar a CSS de hojas de estilo web, más compacta y legible; se traduce internamente a SLD. Requiere la extensión `css`. |
-| **YSLD** | Equivalente a SLD pero en sintaxis YAML, pensado para autoría más rápida y legible. Requiere la extensión `ysld`. |
-| **MBStyle** | Sintaxis basada en JSON, orientada a interoperabilidad con clientes tipo Mapbox GL. Requiere la extensión `mbstyle`. |
+### 3.1 Datos — el corazón técnico de la capa
 
-### Pestañas del editor de estilos
+**[EN PANTALLA: pestaña Datos, con el sistema de referencia y el bounding box visibles]**
 
-- **Datos (Data)** — información básica del estilo y el editor de código donde se escribe/pega la definición (SLD/CSS/YSLD/MBStyle). Incluye botones para generar un estilo por defecto a partir de una plantilla interna y para **validar** la sintaxis antes de guardar.
-- **Publicación (Publishing)** — muestra qué capas están usando actualmente este estilo, útil para medir el impacto antes de modificarlo.
-- **Layer Preview** — previsualiza el estilo aplicado sobre una capa real mientras se edita, sin necesidad de guardar primero.
-- **Layer Attributes** — lista los atributos disponibles de la capa asociada, para saber qué nombres de campo usar en las reglas del estilo (por ejemplo, al estilizar por categoría usando el atributo `COD` de un shapefile de municipios).
+Es la pestaña activa por defecto, y la más densa de las cinco.
 
-### Formas de aplicar un estilo
+**Información básica y metadatos.** Name —el identificador único dentro del espacio de trabajo—, Title, Abstract y Keywords, que son los metadatos legibles que aparecen en el GetCapabilities y que ayudan a cualquier cliente SIG a listar tu capa de forma comprensible.
 
-1. **Estilo del catálogo (por defecto):** el más común. Se sube/crea en la página *Styles*, y luego se asigna como *Default style* o *Additional style* desde la pestaña **Publicación** de la capa.
-2. **Estilo externo (SLD_BODY / SLD=url):** un cliente puede enviar un SLD completo en la propia petición WMS (`GetMap`), sin que ese estilo exista guardado en el catálogo de GeoServer. Útil para pruebas rápidas o clientes que generan estilos dinámicamente.
-3. **Modo librería (Library mode):** el cliente especifica capas y estilos con los parámetros estándar `LAYERS`/`STYLES`, y además adjunta un SLD externo adicional; ese SLD externo actúa como una extensión temporal del catálogo de estilos, y sus definiciones tienen prioridad sobre las del catálogo si hay coincidencia de nombre.
+**Vínculos a metadatos y Enlaces de datos.** Dos secciones que casi nadie explica y que sí vale la pena dominar. Los **vínculos a metadatos** enlazan la capa a un documento de metadatos externo, en dos estándares posibles: **FGDC**, del Federal Geographic Data Committee de Estados Unidos, o **TC211**, el estándar internacional ISO 19115. Aparecen en el GetCapabilities para que un cliente SIG externo pueda descargar la ficha completa de metadatos —y aquí un detalle técnico que GeoServer mismo advierte: en las capacidades de WMS 1.1.1 solo se listan enlaces de tipo FGDC y TC211, ningún otro formato se anuncia ahí. Los **enlaces de datos**, en cambio, apuntan a un recurso de descarga del dato crudo, por ejemplo un zip con el shapefile original en un repositorio. Es puramente informativo: no controla el servicio, solo le dice al usuario final dónde conseguir la fuente.
 
-**Ejemplo boliviano:** un estilo CSS llamado `division_politica` que colorea el polígono `departamentos` con un color de relleno distinto según el atributo `DEPARTAMEN`, y un segundo estilo `division_politica_etiquetas` que agrega el nombre del departamento como etiqueta centrada — ambos disponibles como *Additional styles* de la misma capa, para que el estudiante alterne entre "solo colores" y "colores + etiquetas" en el Layer Preview.
+**Sistema de referencia.** Aquí está la fuente número uno de "mi mapa está desfasado y no sé por qué". GeoServer maneja el **SRS nativo** —en qué proyección está realmente guardado tu dato— y el **SRS declarado** —lo que GeoServer le va a decir al mundo que es. Cuando no coinciden, decides con **SRS Handling**: *Force declared*, la opción por defecto y casi siempre la correcta, impone el sistema declarado sobre el nativo, porque el código declarado viene de la base EPSG con toda su información de área de validez y rutas de transformación; *Reproject native to declared* reproyecta realmente los datos; y *Keep native* conserva el sistema original ignorando el declarado.
+
+**Cuadros delimitadores.** El **Native Bounding Box**, calculable con un clic gracias a *Compute from data*, que lee la geometría real, o *Compute from SRS bounds*, que usa el área de validez teórica del sistema. Y el **Lat/Lon Bounding Box**, siempre en coordenadas geográficas, obligatorio en toda capa WMS, calculable con *Compute from native bounds*. Nunca los llenes a mano: deja que GeoServer los calcule.
+
+**Control de geometrías curvas.** Dos campos poco usados pero importantes de entender: **Geometrías lineales pueden contener arcos circulares**, que le avisa al codificador GML que la capa puede tener curvas verdaderas, para codificarlas como `gml:Curve` en vez de `gml:LineString` —solo relevante en fuentes que soportan geometría curva, como Oracle Spatial; en un shapefile o PostGIS estándar casi siempre queda sin marcar. Y la **Tolerancia de linealización**, que solo importa si sí hay geometrías curvas, y define cuánto se puede "aplanar" un arco a segmentos rectos cuando un cliente no soporta curvas.
+
+**Detalles del Feature Type.** La tabla de atributos que GeoServer detecta automáticamente desde la fuente. En un shapefile típico de división política vas a ver algo como: `the_geom`, de tipo MultiPolygon, el atributo geométrico; `FIRST_NOM_`, un texto con el nombre; `COUNT`, un número entero largo; `COD`, un código en texto. La casilla **Customize attributes** te deja editar manualmente tipo, alias o si un campo admite valores nulos, sin tocar el dato original. Y el botón **Recargar feature type** es puro oro: editaste tu shapefile en QGIS, agregaste un campo nuevo, no necesitas volver a crear la capa desde cero —un clic y GeoServer relee el esquema completo.
+
+**Feature Filtering.** El campo de **filtro CQL** —*Common Query Language*, el lenguaje de consulta propio de GeoServer— restringe qué features se publican sin tocar el dato original ni una sola vez. Con una línea como `DEPARTAMEN = 'COCHABAMBA'`, publicas solo un recorte de una capa nacional completa. Ojo con un matiz técnico: el filtro solo afecta lecturas. Si la capa admite edición por WFS transaccional y alguien inserta una entidad que no cumple el filtro, se guarda igual en el almacén, pero no va a aparecer en las salidas del servicio.
+
+### 3.2 Publicación — cómo se presenta tu capa al mundo
+
+**[EN PANTALLA: pestaña Publicación, con estilos y configuración WMS]**
+
+Si Datos define qué es la capa, Publicación define **cómo se comporta como servicio**.
+
+**Enabled y Advertised.** Dos interruptores que suelen confundirse. Enabled apaga la capa por completo: deja de responder a cualquier petición. Advertised es más sutil: la capa **sigue funcionando** ante peticiones directas —GetMap, GetFeature— pero desaparece del listado público en el GetCapabilities y del vistazo previo. Es la puerta que sigue abierta, pero sin cartel en la fachada. Perfecta para capas auxiliares que solo se usan dentro de un grupo mayor y no necesitan exposición individual.
+
+**HTTP Settings.** El campo **Response Cache Headers**, activado, evita que GeoServer vuelva a procesar la misma petición dentro del tiempo definido en **Cache Time** —una hora, tres mil seiscientos segundos, por defecto.
+
+**WMS Settings.** Aquí eliges el **estilo por defecto** y los **estilos adicionales** disponibles para que el usuario elija. El **Default rendering buffer** agrega un margen en píxeles alrededor del área solicitada al renderizar, útil cuando tienes símbolos grandes o etiquetas que se recortarían justo en el borde. La sección de **Attribution** —texto, enlace y logo— son los créditos del proveedor del dato, visibles en algunos visores. Y **Root Layer in Capabilities** controla si esta capa aparece envuelta en el elemento raíz del documento de capacidades o como raíz directa, relevante solo si es la única capa expuesta en ese servicio.
+
+**WFS Settings**, cuando el recurso es vectorial: el **límite de features por petición**, que evita que un GetFeature devuelva millones de registros de golpe, y el **máximo de decimales** en las salidas GML, además de la lista de sistemas de referencia alternativos que se anuncian en el capabilities.
+
+### 3.3 Dimensiones — cuando el mapa también tiene tiempo
+
+**[EN PANTALLA: pestaña Dimensiones configurando TIME]**
+
+Esta pestaña habilita las dimensiones estándar **TIME** y **ELEVATION** del estándar WMS, más dimensiones personalizadas si las necesitas. Con esto encendido, tu mapa deja de ser una foto fija y se convierte en una película: precipitación mes a mes, avance de una frontera agrícola, imágenes satelitales por fecha.
+
+Los campos son cuatro grupos de decisiones:
+
+- **Attribute y End attribute.** Qué campo de tu tabla guarda el valor de la dimensión, y opcionalmente cuál marca el fin de un rango.
+- **Presentation.** Cómo se listan los valores disponibles en el capabilities: **List**, cada valor por separado; **Interval and resolution**, un rango con un paso fijo; o **Continuous interval**, un rango continuo sin pasos discretos.
+- **Default value.** Cuatro estrategias posibles cuando el cliente no especifica un valor: el más pequeño disponible, el más grande, el más cercano a un valor de referencia que tú definas, o directamente ese valor de referencia fijo, exista o no en los datos.
+- **Nearest match.** Si lo activas, GeoServer acepta el valor disponible más cercano cuando el cliente pide uno exacto que no existe, en vez de devolver un error.
+
+### 3.4 Cacheado de Teselas — la diferencia entre un mapa lento y uno instantáneo
+
+**[EN PANTALLA: pestaña Tile Caching, con gridsets y botón de Seed]**
+
+Aquí es donde un mapa deja de sentirse "de prueba" y empieza a sentirse profesional. GeoServer trae integrado **GeoWebCache**, y esta pestaña es su panel de control por capa: en vez de recalcular la imagen cada vez que alguien mira tu mapa, la genera una vez, la guarda como teselas, y la sirve instantáneamente después.
+
+- **Enabled** activa el cacheo para esta capa específica.
+- **Gridsets, o Available gridsets.** Los esquemas de teselado que se van a cachear —típicamente `EPSG:900913`, la proyección Web Mercator que usan Google Maps y OpenStreetMap, y `EPSG:4326`, geográfico puro.
+- **Formatos de imagen.** En qué formato se guardan las teselas —PNG, JPEG, entre otros— configurable por tipo de capa: vectorial, ráster o grupo.
+- **Metatiling.** En vez de renderizar una tesela a la vez, GeoServer genera un bloque más grande de teselas juntas —por defecto cuatro por cuatro— y luego lo recorta. Esto evita que una etiqueta o un símbolo grande quede cortado justo en el borde de una tesela, y de paso acelera muchísimo el pre-cacheo masivo.
+- **Gutter.** Un margen extra en píxeles alrededor de cada tesela al renderizar, complementario al metatiling, para reducir esos mismos problemas de recorte en geometrías o etiquetas de borde.
+- **Parameter Filters.** Permiten cachear variantes de la misma capa según parámetros WMS como `STYLES` o `TIME` —por ejemplo, una caché distinta por cada estilo alternativo que tenga la capa.
+- **Seed, Truncate y Empty.** El botón que de verdad vas a usar en cualquier demo en vivo: **Seed** pre-genera las teselas de una zona y un rango de zoom antes de que nadie las pida, así el primer clic de tu audiencia carga instantáneo en vez de tardar diez segundos delante de todos. **Truncate** elimina teselas de niveles de zoom específicos. **Empty** borra toda la caché de la capa de una sola vez.
+
+Un concepto que vale la pena remarcar en cámara: cachear no cambia el dato, solo acelera su entrega. Si el shapefile o la tabla PostGIS cambian, hay que volver a hacer seed, o el usuario va a ver teselas desactualizadas hasta que expiren solas.
+
+### 3.5 Seguridad — quién puede ver qué
+
+**[EN PANTALLA: pestaña Seguridad de la capa]**
+
+La última pestaña, y la que más se subestima. Aquí defines **reglas de acceso a datos** a nivel de esta capa específica: qué roles pueden leer, cuáles pueden escribir, y cuáles pueden administrar. Estas reglas se combinan con las que existan a nivel de espacio de trabajo y a nivel global del servidor, y siempre gana la regla más específica que aplique a cada rol. Es el mecanismo típico para dejar visible la división política a cualquiera, mientras la edición de una capa catastral sensible queda reservada solo a un rol específico dentro de tu organización.
+
+Con las cinco pestañas dominadas, ya tienes una capa lista, rápida y segura. Pero rara vez publicamos una capa sola.
 
 ---
 
-## Resumen del flujo completo
+## 4. Grupos de capas — el mapa como una sola pieza
 
-```
-Espacio de trabajo (mapas_bolivia)
-   └─ Almacén de datos (origen_mapas_bolivia → shapefiles de divisionPolitica)
-         └─ Capa (departamentos_bolivia)
-               ├─ Datos: SRS, bounding box, atributos, filtro CQL
-               ├─ Publicación: estilo por defecto, WMS/WFS settings
-               ├─ Dimensiones: (si aplica, TIME/ELEVATION)
-               ├─ Cacheado de Teselas: gridsets, metatiling, seed
-               └─ Seguridad: reglas de acceso por rol
-         └─ Grupo de capas (mapa_base_bolivia)
-               └─ combina varias capas con orden y estilo propios
-   └─ Estilos (SLD / CSS / YSLD / MBStyle)
-         └─ se asignan a una o varias capas del espacio de trabajo
-```
+**[EN PANTALLA: Layer Groups → creando un grupo con varias capas apiladas]**
+
+Imagina pedirle a un cliente SIG que cargue quince capas, una por una, en el orden correcto, cada vez que quiere ver tu mapa base. Nadie hace eso. Para eso existen los grupos de capas: empaquetan varias capas —o incluso otros grupos— bajo un solo nombre, con un orden de dibujo fijo y garantizado.
+
+Ese orden sigue el llamado **modelo del pintor**: la primera capa de la lista se pinta primero y queda debajo; la última se pinta al final y queda encima de todo. Por eso el orden lógico casi siempre es límites político-administrativos abajo, después hidrografía, después vías, y arriba de todo los puntos —ciudades, puntos de interés, lo que el ojo debe encontrar primero.
+
+GeoServer te da **cinco modos** de comportamiento, y los cinco valen la pena conocerlos porque cada uno resuelve un problema distinto:
+
+- **Single, o sencillo.** El grupo se expone como una sola capa con nombre, actuando como alias de la lista completa. Las capas individuales **siguen apareciendo** por separado como entradas de nivel superior en el capabilities.
+- **Opaque, u opaco.** Igual que Single, pero las capas internas **no se listan por separado**: el cliente solo ve el grupo como un todo. Ideal cuando quieres entregar "un mapa base" sin que nadie tenga que preocuparse por sus piezas internas.
+- **Named tree, o árbol con nombre.** Se expone como una jerarquía con nombre propio; el cliente puede pedir tanto el grupo completo como cada subcapa por separado.
+- **Container tree, o árbol contenedor.** Aparece en el capabilities solo como categoría organizativa, **sin nombre invocable** —no se puede pedir como capa única, solo sirve para agrupar visualmente en el árbol de capas de un cliente SIG.
+- **Earth Observation tree.** Un modo especializado para el perfil de observación terrestre de WMS: no renderiza directamente las capas anidadas, solo expone una capa de vista previa llamada Root Layer.
+
+Otros campos que definen el grupo: **Bounds y Projection**, porque GeoServer reproyecta automáticamente todas las capas del grupo a una proyección común, aunque las capas de origen tengan sistemas distintos entre sí. **Layer Group Style**, que permite un estilo alterno para todo el grupo —una combinación distinta de estilos por capa—, disponible solo en modo Single u Opaque. **Enabled, Advertised y Queryable**, con el mismo significado que en una capa individual, donde Queryable controla si el grupo responde a peticiones de información, activo por defecto si al menos una capa interna es consultable. Y **Security**, exactamente igual que en una capa: reglas de acceso por rol, pero aplicadas al grupo completo.
 
 ---
 
-*Documento de referencia — curso GeoServer 3, ARTECLAB.*
+## 5. Estilos — el momento en que el dato se vuelve comprensible
+
+**[EN PANTALLA: editor de estilos con una capa de departamentos coloreada]**
+
+Llegamos al paso más subestimado de todos. Puedes tener el almacén perfecto, la capa perfectamente configurada, el grupo perfectamente ordenado —y si el estilo es genérico, tu mapa no le va a decir nada a nadie.
+
+Un estilo es el idioma visual de tu dato: qué color, qué grosor, qué etiqueta, bajo qué condición. Y vive **separado** de la capa: el mismo estilo se reutiliza en diez capas distintas, y una misma capa puede tener múltiples estilos disponibles para que quien consuma el mapa elija cómo verlo.
+
+**Cuatro lenguajes disponibles.** **SLD**, *Styled Layer Descriptor*, el estándar oficial en XML, disponible siempre sin instalar nada extra —el más verboso, pero el que todo cliente SIG entiende sin excepción. **CSS**, una sintaxis mucho más liviana, parecida a las hojas de estilo web, que se traduce internamente a SLD y requiere activar la extensión correspondiente. **YSLD**, el mismo poder de SLD pero escrito en YAML, pensado para autoría más rápida y más legible, también vía extensión. Y **MBStyle**, en JSON, pensado para interoperar con clientes tipo Mapbox GL, igualmente como extensión.
+
+**El editor de estilos tiene cuatro pestañas propias**, y vale la pena mostrarlas todas en cámara: **Datos**, donde escribes o pegas la definición del estilo, con botones para generar un estilo por defecto desde una plantilla interna y para **validar** la sintaxis antes de guardar. **Publicación**, que muestra qué capas están usando este estilo ahora mismo —útil para medir el impacto antes de modificarlo. **Layer Preview**, que previsualiza el estilo aplicado sobre una capa real mientras editas, sin necesidad de guardar primero. Y **Layer Attributes**, que lista los atributos disponibles de la capa asociada, para saber exactamente qué nombres de campo usar en las reglas del estilo —por ejemplo, al colorear por categoría usando el atributo `COD` de un shapefile de municipios.
+
+**Tres formas de aplicar un estilo, y las tres tienen su lugar.** La más común: un **estilo del catálogo**, creado en la página de Styles y asignado como estilo por defecto o adicional desde la pestaña Publicación de la capa. La segunda: un **estilo externo**, donde un cliente envía un SLD completo directamente en la petición WMS, con los parámetros `SLD_BODY` o `SLD=url`, sin que ese estilo exista guardado en tu catálogo —perfecto para pruebas rápidas o clientes que generan estilos de forma dinámica. Y la tercera, la más avanzada: el **modo librería**, donde el cliente especifica capas y estilos con los parámetros estándar, y además adjunta un SLD externo adicional que actúa como una extensión temporal del catálogo, con prioridad sobre los estilos ya guardados si hay coincidencia de nombre.
+
+`[CTA discreto]` Y este es, sin exagerar, el punto donde un mapa técnicamente correcto se convierte en un mapa que comunica de verdad —el terreno exacto donde cruzamos GeoServer con inteligencia artificial en el curso de webmapping, generando y ajustando estilos en minutos en vez de horas.
+
+---
+
+## Cierre — las cinco piezas, ahora como una sola idea
+
+**[EN PANTALLA: el mapa final ya publicado y funcionando en el geovisor]**
+
+Espacio de trabajo. Almacén de datos. Capa. Grupo de capas. Estilo. Cinco decisiones, tomadas en orden, con criterio —no cinco casillas llenadas al apuro, sino cada propiedad entendida a fondo.
+
+La próxima vez que veas un mapa publicado en cualquier sitio, ya no vas a verlo como "un mapa". Vas a poder mirarlo y reconstruir mentalmente las decisiones exactas que alguien tomó para que ese mapa exista, funcione rápido y se entienda de un vistazo.
+
+`[CTA discreto]` Si esto te dejó con ganas de armar tu propio servidor GeoServer desde cero, con base de datos real, capas cacheadas y estilos generados con ayuda de IA —o si tu interés va más del lado móvil, conectando todo esto a una app en Flutter— el camino completo está en el canal, explicado con el mismo nivel de detalle que hoy.
+
+Y esto, amigo, son cosas que NO SABÍAS que DEBERÍAS SABER.
+
+---
+
+## Notas de producción para ti (no leer en voz alta)
+
+- **Ritmo sugerido:** las secciones 2 (almacenes) y 3 (capas) son, con diferencia, las más largas y densas — considera cortarlas en capítulos de YouTube: 1. Workspace, 2. Almacenes, 3. Capas (con sub-capítulos por pestaña: Datos, Publicación, Dimensiones, Tile Caching, Seguridad), 4. Grupos, 5. Estilos. Ayuda al SEO y a que el espectador pueda volver directo a la propiedad que necesita.
+- **Pausas naturales:** cada `[EN PANTALLA: ...]` es un buen punto para dejar de hablar 2-3 segundos y que la imagen respire antes de seguir narrando, sobre todo al mostrar tablas de parámetros como los de PostGIS.
+- **Los `[CTA discreto]`** están puestos justo después de explicar algo de alto valor real — reciprocidad primero, mención después, nunca al revés.
+- **Repetición estratégica:** "cinco piezas / cinco decisiones" aparece en la apertura y el cierre a propósito, como ancla mental para quien vea el video completo.
+- Si necesitas la versión recortada en clips cortos para TikTok o Shorts a partir de este guión largo, dímelo y armamos el paquete completo con SFX, prompts de portadas y descripciones, como siempre.
