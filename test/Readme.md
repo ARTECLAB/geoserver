@@ -30,9 +30,9 @@ test/
 │
 ├── meridian.html           ← Clase 1: Fundamentos y Arquitectura de GeoServer 3
 ├── datum.html              ← Clase 2: Instalación en Linux (Java 17 + Tomcat 11 + WAR)
-├── vector.html             ← Clase 3: Docker y Conversión de Datos Geoespaciales
-├── raster.html             ← Clase 4: Publicación de Capas Vectoriales y Raster
-├── symbology.html          ← Clase 5: Estilos con SLD y CSS
+├── vector.html             ← Clase 3: PostGIS y Conversión de Datos Geoespaciales
+├── raster.html             ← Clase 4: Publicación de Capas Vectoriales
+├── symbology.html          ← Clase 5: Estilos con SLD
 ├── topology.html           ← Clase 6: PostGIS + GeoServer
 ├── ogcapi.html             ← Clase 7: Servicios OGC, Filtros CQL y Seguridad
 ├── geodesia.html           ← Clase 8: Proyecto Final — IDE Municipal
@@ -135,9 +135,9 @@ Los nombres no revelan el orden del curso intencionalmente — evita que los est
 |---------|------|-----------|--------|
 | `meridian.html` | Fundamentos GeoServer 3 | 12 | 100 |
 | `datum.html` | Instalación en Linux | 12 | 100 |
-| `vector.html` | Docker + ogr2ogr | 12 | 100 |
+| `vector.html` | PostGIS + ogr2ogr | 12 | 100 |
 | `raster.html` | Publicación de capas | 12 | 100 |
-| `symbology.html` | Estilos SLD y CSS | 12 | 100 |
+| `symbology.html` | Estilos SLD | 12 | 100 |
 | `topology.html` | PostGIS + GeoServer | 12 | 100 |
 | `ogcapi.html` | Servicios OGC + Seguridad | 12 | 100 |
 | `geodesia.html` | Proyecto Final IDE | 12 | 100 |

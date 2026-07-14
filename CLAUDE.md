@@ -26,7 +26,7 @@
 | `datum.html` | 2 | Instalación en Debian 13 con VirtualBox | 16 |
 | `vector.html` | 3 | PostGIS y Conversión de Datos con ogr2ogr | 13 |
 | `raster.html` | 4 | Publicación de capas vectoriales | 11 |
-| `symbology.html` | 5 | Estilos SLD y CSS cartográfico | 11 |
+| `symbology.html` | 5 | Estilos SLD: condicionales e imágenes | 15 |
 | `topology.html` | 6 | PostGIS + GeoServer — datos desde la base | 14 |
 | `ogcapi.html` | 7 | Servicios OGC, seguridad y filtros CQL | 13 |
 | `geodesia.html` | 8 | Proyecto final — IDE Municipal | 11 |
@@ -204,7 +204,7 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 - `datum.html` — instalación Debian 13, Tomcat 11, WAR, memoria Java
 - `vector.html` — PostGIS con apt, ogr2ogr completo, Store PostGIS en GeoServer
 - `raster.html` — Shapefile, Layer Groups, segunda capa (provincias) — sin GeoTIFF
-- `symbology.html` — SLD, CSS, escala dependiente — solo estilos vectoriales, sin ColorMap/raster
+- `symbology.html` — solo SLD (sin CSS Styles: el plugin no está disponible para GeoServer 3), estilos condicionales con ElseFilter y filtros numéricos usando el mapa de departamentos (campos reales FIRST_NOM_/COUNT/COD), ExternalGraphic para íconos personalizados (caso postes), escala dependiente — sin ColorMap/raster (2026-07-09)
 - `topology.html` — PostGIS avanzado, vistas SQL, datos dinámicos
 - `ogcapi.html` — WMS/WFS/WMTS, CQL_FILTER, seguridad, roles
 - `geodesia.html` — proyecto final IDE Municipal
@@ -259,7 +259,7 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 
 El estudiante entrega una Infraestructura de Datos Espaciales con:
 - GeoServer 3 publicando capas de Bolivia desde PostGIS
-- Estilos SLD/CSS en todas las capas
+- Estilos SLD en todas las capas
 - Seguridad con roles de acceso configurada
 - Visor web OpenLayers consumiendo WMS y WFS
 - Filtros CQL funcionando desde el visor
