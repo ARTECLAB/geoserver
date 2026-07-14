@@ -8,7 +8,7 @@
 
 **Nombre:** GeoServer 3 — De cero a producción  
 **Nivel:** Intermedio  
-**Duración:** 8 clases × 2 horas = 16 horas  
+**Duración:** 9 clases × 2 horas = 18 horas  
 **Hosting:** `geoserver-pro.danielquisbert.com` (GitHub Pages)  
 **Paleta:** gold `#C89B3C` / `#E8B84B`
 
@@ -27,9 +27,10 @@
 | `vector.html` | 3 | PostGIS y Conversión de Datos con ogr2ogr | 13 |
 | `raster.html` | 4 | Publicación de capas vectoriales | 11 |
 | `symbology.html` | 5 | Estilos SLD: condicionales, imágenes y degradados | 19 |
-| `topology.html` | 6 | PostGIS + GeoServer — datos desde la base | 14 |
-| `ogcapi.html` | 7 | Servicios OGC, seguridad y filtros CQL | 13 |
-| `geodesia.html` | 8 | Proyecto final — IDE Municipal | 11 |
+| `topology.html` | 6 | Vistas SQL y GeoWebCache — capas calculadas, mapas veloces | 17 |
+| `ogcapi.html` | 7 | Servicios OGC y filtros CQL | 14 |
+| `azimuth.html` | 8 | Seguridad en GeoServer — usuarios, roles y reglas | 15 |
+| `geodesia.html` | 9 | Proyecto final — IDE Municipal | 11 |
 
 ### Quizzes (subcarpeta test/)
 
@@ -143,7 +144,7 @@ Parámetros importantes:
 |----------|-------------|-------|
 | WMS | Imagen PNG renderizada | 1, 4, 5, 7 |
 | WFS | Datos vectoriales GeoJSON | 7 |
-| WMTS | Teselas en caché (GeoWebCache) | 7 |
+| WMTS | Teselas en caché (GeoWebCache) | 6, 7 |
 
 ### Anatomía petición WMS (para slides y ejemplos)
 ```
@@ -205,10 +206,11 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 - `vector.html` — PostGIS con apt, ogr2ogr completo, Store PostGIS en GeoServer
 - `raster.html` — Shapefile, Layer Groups, segunda capa (provincias) — sin GeoTIFF
 - `symbology.html` — solo SLD (sin CSS Styles: el plugin no está disponible para GeoServer 3), estilos condicionales con ElseFilter y filtros numéricos usando el mapa de departamentos (campos reales FIRST_NOM_/COUNT/COD), ExternalGraphic para íconos personalizados (caso postes), escala dependiente — sin ColorMap/raster (2026-07-09)
-- `topology.html` — PostGIS avanzado, vistas SQL, datos dinámicos
-- `ogcapi.html` — WMS/WFS/WMTS, CQL_FILTER, seguridad, roles
-- `geodesia.html` — proyecto final IDE Municipal
-- `test/*.html` — 8 quizzes, 96 preguntas, sin Docker, sin GeoPackage
+- `topology.html` — Clase 6 reescrita (2026-07-14): vistas SQL sobre lo ya construido en la Clase 3 (sin repetir instalación de PostGIS ni ogr2ogr) + GeoWebCache (activar caché, Seed zoom 0–8 con BBox de Bolivia por los 6GB de disco, Truncate). Usa los nombres reales del curso: BD `geoserver_curso`, usuario `geoserver_user`, workspace `bolivia_curso`, campos `first_nom_`/`count` en minúsculas (ogr2ogr los convierte)
+- `ogcapi.html` — Clase 7 (2026-07-14): solo WMS/WFS/WMTS + CQL_FILTER (GeoWebCache pasó a la Clase 6, seguridad a la Clase 8). GetCapabilities, orden lat/lon del BBOX en WMS 1.3.0, práctica integradora
+- `azimuth.html` — Clase 8 NUEVA (2026-07-14): seguridad — contraseña admin, master password, usuarios/roles (ROLE_EDITOR, editor_gis), reglas de datos `workspace.capa.permiso = roles`, reglas de servicios, verificación en incógnito, OIDC en GS3
+- `geodesia.html` — Clase 9 (renumerada): proyecto final IDE Municipal
+- `test/*.html` — 9 quizzes, 108 preguntas, sin Docker, sin GeoPackage
 
 ### ✅ Correcciones aplicadas
 - Docker eliminado de todos los archivos → instalación directa en VM
@@ -219,6 +221,7 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 - ARTECLAB Bolivia → ARTECLAB en todos los archivos
 - RAM real corregida a 2GB (no 6GB) — GeoTIFF/raster eliminado de `raster.html` y `symbology.html` por riesgo de OOM en la VM (2026-07-09)
 - `ogr2ogr` sin `host=localhost`/`user=postgres` en la cadena `PG:` — causaba `fe_sendauth: no password supplied`
+- Reestructuración de clases 6–9 (2026-07-14): la Clase 6 repetía toda la Clase 3 (instalar PostGIS, usuario, ogr2ogr, Store) con nombres inconsistentes (`geobolivia`/`geoserver_ro`) y un GeoPackage — reescrita como Vistas SQL + GeoWebCache. La Clase 7 tenía 4 temas apretados — quedó solo OGC + CQL. Seguridad ahora es la Clase 8 nueva (`azimuth.html`). El quiz `test/ogcapi.html` era una copia idéntica del de PostGIS — reescrito con preguntas propias de OGC/CQL. Workspace unificado a `bolivia_curso` (antes aparecía `geoserver3_curso` en ogcapi/geodesia)
 
 ### ✅ Resuelto (2026-07-09)
 `slides.css` ya usa `justify-content: flex-start` en `.slide.active` y `font-size: clamp(10px, 1.1vw, 13px)` en `.code-block` (mismo fix que fluttergis, son dos copias separadas del archivo).
@@ -255,7 +258,7 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 
 ---
 
-## Proyecto final — IDE Municipal (Clase 8)
+## Proyecto final — IDE Municipal (Clase 9)
 
 El estudiante entrega una Infraestructura de Datos Espaciales con:
 - GeoServer 3 publicando capas de Bolivia desde PostGIS
