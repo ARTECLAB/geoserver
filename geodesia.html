@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clase 8 — Proyecto Final: IDE Municipal · ARTECLAB</title>
+<title>Clase 9 — Proyecto Final: IDE Municipal · ARTECLAB</title>
 <link rel="stylesheet" href="assets/slides.css"></head>
 <body><div class="deck">
-<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 8</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 11</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
+<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 9</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 11</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
 <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
 <div class="slides-wrap">
 
     <div class="slide slide-cover"><div class="cover-grid"></div>
-    <div class="cover-tag"><span class="cover-dot"></span> Módulo 7 · Clase 8 · <span class="auto-year"></span></div>
+    <div class="cover-tag"><span class="cover-dot"></span> Módulo 8 · Clase 9 · <span class="auto-year"></span></div>
     <h1 class="cover-title">Proyecto Final:<br><em>IDE Municipal</em></h1>
     <p class="cover-sub">PostGIS + GeoServer + OpenLayers — todo integrado en un visor web real</p>
     <div class="cover-pills"><span class="cover-pill">⏱ 2 horas</span><span class="cover-pill">🏆 Clase final</span><span class="cover-pill">👨‍💻 Daniel Quisbert</span></div></div>
@@ -49,9 +49,9 @@
     <div class="code-label">Capa WMS desde GeoServer en OpenLayers</div>
     <div class="code-block"><span class="k">const</span> zonificacion = <span class="k">new</span> ol.layer.Tile({
   source: <span class="k">new</span> ol.source.TileWMS({
-    url: <span class="s">'http://servidor:8080/geoserver/geoserver3_curso/wms'</span>,
+    url: <span class="s">'http://192.168.X.X:8080/geoserver/bolivia_curso/wms'</span>,
     params: {
-      LAYERS: <span class="s">'geoserver3_curso:zonificacion'</span>,
+      LAYERS: <span class="s">'bolivia_curso:zonificacion'</span>,
       TILED: <span class="k">true</span>,
       FORMAT: <span class="s">'image/png'</span>,
       TRANSPARENT: <span class="k">true</span>
@@ -103,15 +103,16 @@
     <div class="callout callout-ok" style="margin-top:12px;"><span class="callout-icon">🎯</span><div class="callout-body"><div class="callout-title">Lo que cada estudiante debe mostrar</div>URL del GetCapabilities · Vista previa en OpenLayers · Filtro CQL más interesante que usaron · Un problema que resolvieron solos.</div></div>
     </div></div>
 
-    <div class="slide slide-content"><div class="slide-label">Cierre del curso</div><div class="slide-title">Lo que aprendiste en 8 clases</div><div class="slide-body">
+    <div class="slide slide-content"><div class="slide-label">Cierre del curso</div><div class="slide-title">Lo que aprendiste en 9 clases</div><div class="slide-body">
     <div class="cards cards-4">
     <div class="card card-gold"><div class="card-title">✓ Fundamentos</div><div class="card-desc">Arquitectura GeoServer, servicios OGC, jerarquía WS→Store→Layer</div></div>
     <div class="card"><div class="card-title">✓ Instalación</div><div class="card-desc">Java 17, Tomcat 11, WAR, systemd, Data Directory</div></div>
     <div class="card"><div class="card-title">✓ PostGIS + ogr2ogr</div><div class="card-desc">PostGIS en VM, importar Shapefiles, ogr2ogr, conexión con GeoServer</div></div>
     <div class="card"><div class="card-title">✓ Publicación</div><div class="card-desc">Workspaces, Stores, Layers vectoriales</div></div>
-    <div class="card"><div class="card-title">✓ Estilos</div><div class="card-desc">SLD, CSS, simbología categorizada, etiquetas</div></div>
-    <div class="card"><div class="card-title">✓ PostGIS</div><div class="card-desc">Base de datos espacial, vistas SQL, WFS-T</div></div>
-    <div class="card"><div class="card-title">✓ OGC + CQL</div><div class="card-desc">WMS/WFS/WMTS, filtros espaciales, GeoWebCache</div></div>
+    <div class="card"><div class="card-title">✓ Estilos</div><div class="card-desc">SLD, simbología categorizada, etiquetas, íconos</div></div>
+    <div class="card"><div class="card-title">✓ Vistas SQL + GWC</div><div class="card-desc">Capas calculadas desde PostGIS y teselas en caché con GeoWebCache</div></div>
+    <div class="card"><div class="card-title">✓ OGC + CQL</div><div class="card-desc">WMS/WFS/WMTS, filtros de atributos y espaciales</div></div>
+    <div class="card"><div class="card-title">✓ Seguridad</div><div class="card-desc">Usuarios, roles, reglas de acceso por capa y servicio</div></div>
     <div class="card card-gold"><div class="card-title">✓ IDE Real</div><div class="card-desc">PostGIS + GeoServer + OpenLayers en producción</div></div>
     </div>
     </div></div>
@@ -121,7 +122,7 @@
     <h1 class="cover-title">¡Felicitaciones!<br><em>Eres un GeoServer pro.</em></h1>
     <p class="cover-sub">Publicar mapas, servir datos y construir IDEs — ahora lo haces tú.</p>
     <div style="max-width:460px;width:100%;position:relative;">
-    <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario Final — Clase 8</div><div class="quiz-cta-sub">12 preguntas · Evaluación del curso completo</div></div><a href="test/geodesia.html" target="_blank">Ir al cuestionario →</a></div></div>
+    <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario Final — Clase 9</div><div class="quiz-cta-sub">12 preguntas · Evaluación del curso completo</div></div><a href="test/geodesia.html" target="_blank">Ir al cuestionario →</a></div></div>
     <div class="cover-pills" style="margin-top:20px;">
     <span class="cover-pill">🌐 danielquisbert.com</span>
     <span class="cover-pill">📘 geoserver-pro.danielquisbert.com</span>

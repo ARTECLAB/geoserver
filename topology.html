@@ -1,173 +1,220 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clase 6 — PostGIS + GeoServer · ARTECLAB</title>
+<title>Clase 6 — Vistas SQL y GeoWebCache · ARTECLAB</title>
 <link rel="stylesheet" href="assets/slides.css"></head>
 <body><div class="deck">
-<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 6</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 14</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
+<div class="topbar"><div class="topbar-left"><span class="tb-badge">ARTECLAB</span><span class="tb-course">GeoServer 3 — De cero a producción</span><span class="tb-class">Clase 6</span></div><div class="topbar-right"><span class="slide-counter" id="slideCounter"><span>1</span> / 17</span><button class="theme-btn" id="themeBtn"><span class="t-icon">◐</span><span class="t-label">Oscuro</span></button><button class="fs-btn" id="fsBtn">⛶</button></div></div>
 <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
 <div class="slides-wrap">
 
     <div class="slide slide-cover"><div class="cover-grid"></div>
     <div class="cover-tag"><span class="cover-dot"></span> Módulo 5 · Clase 6 · <span class="auto-year"></span></div>
-    <h1 class="cover-title">PostGIS + GeoServer:<br><em>Publicación desde BD</em></h1>
-    <p class="cover-sub">La combinación más potente para servicios geoespaciales en producción</p>
-    <div class="cover-pills"><span class="cover-pill">⏱ 2 horas</span><span class="cover-pill">🗄️ PostgreSQL 16</span><span class="cover-pill">👨‍💻 Daniel Quisbert</span></div></div>
+    <h1 class="cover-title">Vistas SQL y GeoWebCache:<br><em>capas calculadas, mapas veloces</em></h1>
+    <p class="cover-sub">Crea capas nuevas sin duplicar datos y sirve teselas en milisegundos</p>
+    <div class="cover-pills"><span class="cover-pill">⏱ 2 horas</span><span class="cover-pill">🧮 Vistas SQL · ⚡ GWC</span><span class="cover-pill">👨‍💻 Daniel Quisbert</span></div></div>
 
     <div class="slide slide-content"><div class="slide-label">Al finalizar esta clase</div><div class="slide-title">¿Qué vamos a lograr hoy?</div><div class="slide-body"><div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Preparar una base de datos PostGIS para GeoServer</div><div class="step-desc">CREATE EXTENSION postgis, usuario de solo lectura, índices espaciales.</div></div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Importar datos geoespaciales con ogr2ogr a PostgreSQL</div><div class="step-desc">Shapefile y GeoPackage directo a PostGIS en un comando.</div></div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Crear un Datastore PostGIS en GeoServer</div><div class="step-desc">Conexión JDBC, Connection Pool y publicación de tablas.</div></div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Publicar vistas SQL como capas WMS</div><div class="step-desc">El poder real de PostGIS: datos calculados servidos como mapas.</div></div></div>
-    </div><div class="instructor-strip"><div class="is-avatar">DQ</div><div><div class="is-name">Daniel Quisbert</div><div class="is-role">ARTECLAB · danielquisbert.com</div></div></div></div></div>
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Crear vistas SQL en PostGIS para generar capas nuevas</div><div class="step-desc">Filtros y cálculos espaciales — sin duplicar los datos que ya importamos en la Clase 3.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Publicar las vistas como capas WMS en GeoServer</div><div class="step-desc">Usando el Store PostGIS que ya tenemos conectado — GeoServer las ve como tablas.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Activar GeoWebCache para servir teselas en caché</div><div class="step-desc">De 200–2000 ms por imagen WMS a 5–20 ms por tesela pre-generada.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Hacer Seed y Truncate de la caché</div><div class="step-desc">Pre-generar teselas de Bolivia y regenerarlas cuando los datos o el estilo cambien.</div></div></div>
+    </div><div class="instructor-strip"><div class="is-avatar">DQ</div><div><div class="is-name">Daniel Quisbert</div><div class="is-role">ARTECLAB · geoserver-pro.danielquisbert.com</div></div></div></div></div>
 
-    <div class="slide slide-content"><div class="slide-label">¿Por qué PostGIS?</div><div class="slide-title">Archivo vs Base de datos — cuándo usar cada uno</div><div class="slide-body">
-    <table class="compare-table"><thead><tr><th></th><th>GeoPackage / SHP</th><th style="color:var(--gold-light)">PostGIS ✓</th></tr></thead><tbody>
-    <tr><td><strong>Usuarios simultáneos</strong></td><td>1 (bloqueos de escritura)</td><td>Miles</td></tr>
-    <tr><td><strong>Edición en tiempo real</strong></td><td>Riesgoso</td><td>Transaccional (ACID)</td></tr>
-    <tr><td><strong>Consultas espaciales</strong></td><td>Limitadas</td><td>ST_Intersects, ST_Buffer, etc.</td></tr>
-    <tr><td><strong>Datos calculados</strong></td><td>No</td><td>Vistas SQL con geometría</td></tr>
-    <tr><td><strong>Escala</strong></td><td>Hasta ~500MB práctico</td><td>Terabytes con índices</td></tr>
-    <tr><td><strong>WFS Transaccional</strong></td><td>No</td><td>Edición desde QGIS via GeoServer</td></tr>
-    </tbody></table>
-    </div></div>
-
-    <div class="slide slide-section"><div class="section-num">Paso 1 de 4</div><div class="section-title">Preparar PostGIS</div><div class="section-desc">Base de datos + extensión espacial + usuario seguro</div></div>
-
-    <div class="slide slide-content"><div class="slide-label">SQL esencial · Parte 1 de 2</div><div class="slide-title">Crear la base de datos y activar PostGIS</div><div class="slide-body">
-    <div class="two-col">
-    <div><div class="code-label">Comandos independientes desde la terminal (no \c)</div>
-    <div class="code-block" style="font-size:11px;"><span class="c"># 1. Crear base de datos</span>
-<span class="k">sudo</span> -u postgres psql -c \
-  <span class="s">"CREATE DATABASE geobolivia TEMPLATE template0 ENCODING 'UTF8';"</span>
-
-<span class="c"># 2. Activar PostGIS — con -d, sin \c</span>
-<span class="k">sudo</span> -u postgres psql -d geobolivia -c \
-  <span class="s">"CREATE EXTENSION postgis;"</span>
-<span class="k">sudo</span> -u postgres psql -d geobolivia -c \
-  <span class="s">"CREATE EXTENSION postgis_topology;"</span>
-
-<span class="c"># 3. Verificar</span>
-<span class="k">sudo</span> -u postgres psql -d geobolivia -c \
-  <span class="s">"SELECT PostGIS_Version();"</span>
-<span class="c"># → 3.4 USE_GEOS=1 USE_PROJ=1</span></div></div>
-    <div>
-    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🚨</span><div class="callout-body"><div class="callout-title">Por qué no usamos \c</div>Al pegar bloques de texto, <code>\c</code> puede confundir la línea siguiente con el puerto de conexión y fallar. Conectar directo con <code>-d geobolivia</code> evita el problema.</div></div>
-    <div class="callout callout-info"><span class="callout-icon">📌</span><div class="callout-body">El índice espacial GIST es el que hace rápidas las consultas espaciales: <code>CREATE INDEX idx ON tabla USING GIST(geom);</code></div></div>
-    </div></div></div></div>
-
-    <div class="slide slide-content"><div class="slide-label">SQL esencial · Parte 2 de 2</div><div class="slide-title">Usuario de solo lectura para GeoServer</div><div class="slide-body">
-    <div class="two-col">
-    <div><div class="code-label">Mismo patrón: cada comando independiente</div>
-    <div class="code-block" style="font-size:11px;"><span class="c"># 1. Crear usuario</span>
-<span class="k">sudo</span> -u postgres psql -c \
-  <span class="s">"CREATE USER geoserver_ro WITH PASSWORD 'gs_readonly!';"</span>
-
-<span class="c"># 2. Permitir la conexión a la base</span>
-<span class="k">sudo</span> -u postgres psql -c \
-  <span class="s">"GRANT CONNECT ON DATABASE geobolivia TO geoserver_ro;"</span>
-
-<span class="c"># 3. Dar acceso de solo lectura a las tablas</span>
-<span class="k">sudo</span> -u postgres psql -d geobolivia -c \
-  <span class="s">"GRANT SELECT ON ALL TABLES IN SCHEMA public TO geoserver_ro;"</span></div></div>
-    <div>
-    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🔒</span><div class="callout-body"><div class="callout-title">Principio de mínimo privilegio</div>GeoServer solo necesita SELECT para servir mapas. Si las credenciales se filtran, el atacante no puede modificar datos.</div></div>
-    <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body">Cada comando se ejecuta y vuelve a la terminal — puedes pegarlos todos juntos o uno por uno, el resultado es el mismo.</div></div>
-    </div></div></div></div>
-
-    <div class="slide slide-section"><div class="section-num">Paso 2 de 4</div><div class="section-title">Importar datos<br>a PostGIS</div><div class="section-desc">ogr2ogr: el camino más rápido</div></div>
-
-    <div class="slide slide-content"><div class="slide-label">Importación masiva</div><div class="slide-title">ogr2ogr → PostGIS</div><div class="slide-body">
-    <div class="code-label">Paso 0 — mover el archivo a una carpeta que postgres pueda leer</div>
-    <div class="code-block"><span class="k">sudo</span> cp datos.gpkg /tmp/
-<span class="k">cd</span> /tmp</div>
-    <div class="code-label" style="margin-top:14px;">Importar GeoPackage completo a PostGIS — con sudo -u postgres</div>
-    <div class="code-block"><span class="c"># Importar cada capa del GeoPackage a PostGIS</span>
-<span class="k">sudo</span> -u postgres ogr2ogr \
-  -f <span class="s">"PostgreSQL"</span> \
-  PG:<span class="s">"dbname=geobolivia"</span> \
-  datos.gpkg \
-  -nln <span class="n">municipios</span> \
-  -t_srs <span class="n">EPSG:4326</span> \
-  -overwrite
-
-<span class="c"># Crear índice espacial</span>
-<span class="k">sudo</span> -u postgres psql -d geobolivia -c \
-  <span class="s">"CREATE INDEX idx_mun_geom ON municipios USING GIST(wkb_geometry);"</span>
-
-<span class="c"># Verificar en psql</span>
-<span class="k">sudo</span> -u postgres psql -d geobolivia -c <span class="s">"SELECT COUNT(*) FROM municipios;"</span></div>
-    <div class="callout callout-ok" style="margin-top:12px;"><span class="callout-icon">✓</span><div class="callout-body"><code>-overwrite</code> elimina y recrea la tabla. <code>-append</code> agrega filas a una tabla existente. Usa overwrite para carga inicial y append para actualizaciones parciales.</div></div>
-    <div class="callout callout-warn" style="margin-top:10px;"><span class="callout-icon">⚠️</span><div class="callout-body">Sin <code>host</code>/<code>user</code> en <code>PG:</code>, ogr2ogr usa el socket local con <code>sudo -u postgres</code> — sin esto, PostgreSQL pide una contraseña que el rol <code>postgres</code> no tiene.</div></div>
-    </div></div>
-
-    <div class="slide slide-section"><div class="section-num">Paso 3 de 4</div><div class="section-title">Datastore PostGIS<br>en GeoServer</div><div class="section-desc">Conectar GeoServer a PostgreSQL</div></div>
-
-    <div class="slide slide-content"><div class="slide-label">Configuración</div><div class="slide-title">Parámetros del Datastore PostGIS</div><div class="slide-body">
+    <div class="slide slide-content"><div class="slide-label">Punto de partida</div><div class="slide-title">Lo que ya tenemos desde la Clase 3 — hoy no instalamos nada</div><div class="slide-body">
     <div class="two-col">
     <div><div class="kv-list">
-    <div class="kv"><span class="kv-key">Host</span><span class="kv-val">localhost (o IP del servidor PostgreSQL)</span></div>
-    <div class="kv"><span class="kv-key">Puerto</span><span class="kv-val">5432 (por defecto)</span></div>
-    <div class="kv"><span class="kv-key">Base de datos</span><span class="kv-val">geobolivia</span></div>
-    <div class="kv"><span class="kv-key">Schema</span><span class="kv-val">public (donde están las tablas)</span></div>
-    <div class="kv"><span class="kv-key">Usuario</span><span class="kv-val">geoserver_ro (solo lectura)</span></div>
-    <div class="kv"><span class="kv-key">Contraseña</span><span class="kv-val">gs_readonly!</span></div>
-    <div class="kv"><span class="kv-key">Min conexiones</span><span class="kv-val">1 (Connection Pool mínimo)</span></div>
-    <div class="kv"><span class="kv-key">Max conexiones</span><span class="kv-val">10 (ajustar según carga)</span></div>
+    <div class="kv"><span class="kv-key">Base de datos</span><span class="kv-val">geoserver_curso (PostgreSQL + PostGIS en la VM)</span></div>
+    <div class="kv"><span class="kv-key">Tablas</span><span class="kv-val">departamentos · municipios (importadas con ogr2ogr)</span></div>
+    <div class="kv"><span class="kv-key">Usuario BD</span><span class="kv-val">geoserver_user (solo lectura)</span></div>
+    <div class="kv"><span class="kv-key">Store PostGIS</span><span class="kv-val">Ya conectado en GeoServer (Clase 3)</span></div>
+    <div class="kv"><span class="kv-key">Workspace</span><span class="kv-val">bolivia_curso</span></div>
     </div></div>
     <div>
-    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">⚡</span><div class="callout-body"><div class="callout-title">Connection Pool</div>GeoServer mantiene conexiones abiertas a PostgreSQL. Evita el costo de crear una nueva conexión por cada petición WMS.</div></div>
-    <div class="callout callout-warn"><span class="callout-icon">⚠️</span><div class="callout-body">Después de guardar el Store, GeoServer lista automáticamente todas las tablas y vistas de ese schema listas para publicar.</div></div>
+    <div class="callout callout-ok" style="margin-bottom:10px;"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">Hoy construimos encima</div>PostGIS ya está instalado, los datos ya están importados y GeoServer ya está conectado. Esta clase usa todo eso para crear <strong>capas nuevas con SQL</strong> y hacer que el servidor responda <strong>mucho más rápido</strong>.</div></div>
+    <div class="code-label">Verificar que todo sigue en pie</div>
+    <div class="code-block"><span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"SELECT count(*) FROM departamentos;"</span>
+<span class="c"># Bolivia tiene 9 departamentos</span></div>
     </div></div></div></div>
 
-    <div class="slide slide-section"><div class="section-num">Paso 4 de 4</div><div class="section-title">Vistas SQL<br>como capas WMS</div><div class="section-desc">El poder real: datos calculados servidos como mapas</div></div>
+    <div class="slide slide-section"><div class="section-num">Parte 1</div><div class="section-title">Vistas SQL:<br>capas sin duplicar datos</div><div class="section-desc">Una consulta guardada que GeoServer publica como si fuera una tabla</div></div>
 
-    <div class="slide slide-content"><div class="slide-label">Vista SQL</div><div class="slide-title">Municipios con densidad poblacional — vista para GeoServer</div><div class="slide-body">
-    <div class="code-label">Crear vista SQL en PostgreSQL</div>
-    <div class="code-block"><span class="c">-- Vista: municipios + cálculo de densidad</span>
-CREATE OR REPLACE VIEW v_municipios_densidad AS
-SELECT
-  m.gid,
-  m.nombre_municipio,
-  m.departamento,
-  m.superficie_km2,
-  p.poblacion_2024,
-  ROUND(p.poblacion_2024::numeric /
-        NULLIF(m.superficie_km2, 0), 1)
-    AS hab_por_km2,
-  m.wkb_geometry AS geom
-FROM municipios m
-LEFT JOIN censo_2024 p
-  ON m.cod_ine = p.cod_municipio;
+    <div class="slide slide-content"><div class="slide-label">Concepto clave</div><div class="slide-title">¿Qué es una vista SQL?</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="cards" style="gap:10px;">
+    <div class="card card-gold"><span class="card-icon">🗄️</span><div class="card-title">Tabla física</div><div class="card-desc">Los datos viven en disco. <code>departamentos</code> tiene las 9 filas con sus geometrías. Ocupa espacio y se importó una sola vez.</div></div>
+    <div class="card card-blue"><span class="card-icon">🪞</span><div class="card-title">Vista SQL</div><div class="card-desc">Una consulta guardada con nombre. No copia datos: cada vez que alguien la consulta, PostgreSQL ejecuta el SELECT sobre la tabla original.</div></div>
+    </div></div>
+    <div>
+    <div class="callout callout-ok" style="margin-bottom:10px;"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">Para GeoServer es una tabla más</div>El Store PostGIS lista tablas <strong>y vistas</strong> por igual. Publicar una vista es exactamente el mismo flujo que publicar una tabla.</div></div>
+    <div class="callout callout-info"><span class="callout-icon">💡</span><div class="callout-body"><div class="callout-title">¿Para qué sirve en un mapa?</div>Filtrar (solo el altiplano), calcular (superficie, densidad), transformar (polígonos → puntos para etiquetas). Una tabla importada, muchas capas publicadas.</div></div>
+    </div></div></div></div>
 
-<span class="c">-- GeoServer la ve y publica igual que una tabla física</span></div>
-    <div class="callout callout-ok" style="margin-top:12px;"><span class="callout-icon">✓</span><div class="callout-body">Ahora publicas <code>v_municipios_densidad</code> desde GeoServer y creas un estilo SLD graduado por <code>hab_por_km2</code>. Los datos del censo se calculan en el servidor, no en el cliente.</div></div>
+    <div class="slide slide-content"><div class="slide-label">Vista 1 · Filtro</div><div class="slide-title">v_altiplano — una capa solo con La Paz, Oruro y Potosí</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="code-label">Crear la vista — un filtro sobre la tabla existente</div>
+    <div class="code-block"><span class="c"># Crear la vista</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"CREATE VIEW v_altiplano AS
+   SELECT * FROM departamentos
+   WHERE first_nom_ IN ('La Paz','Oruro','Potosi');"</span>
+
+<span class="c"># Verificar: debe devolver 3 filas</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"SELECT first_nom_ FROM v_altiplano;"</span></div></div>
+    <div>
+    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🔤</span><div class="callout-body"><div class="callout-title">Los campos van en minúsculas</div>En el Shapefile el campo se llama <code>FIRST_NOM_</code>, pero al importarlo con ogr2ogr los nombres se convierten a minúsculas: en PostGIS es <code>first_nom_</code>. Revisa los valores exactos con <code>SELECT first_nom_ FROM departamentos;</code></div></div>
+    <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body">Si mañana se corrige la geometría de Oruro en <code>departamentos</code>, la vista se actualiza sola — no hay datos duplicados que mantener.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Vista 2 · Cálculo espacial</div><div class="slide-title">v_departamentos_centroides — de polígonos a puntos con superficie</div><div class="slide-body">
+    <div class="code-label">Funciones PostGIS dentro de la vista</div>
+    <div class="code-block"><span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"CREATE VIEW v_departamentos_centroides AS
+   SELECT
+     ogc_fid,
+     first_nom_,
+     ROUND((ST_Area(wkb_geometry::geography) / 1000000)::numeric, 0) AS superficie_km2,
+     ST_Centroid(wkb_geometry) AS geom
+   FROM departamentos;"</span>
+
+<span class="c"># Verificar: Santa Cruz debe salir primero (el departamento más grande)</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"SELECT first_nom_, superficie_km2 FROM v_departamentos_centroides
+   ORDER BY superficie_km2 DESC;"</span></div>
+    <div class="callout callout-info" style="margin-top:12px;"><span class="callout-icon">🧮</span><div class="callout-body"><div class="callout-title">Dos funciones espaciales trabajando</div><code>ST_Centroid()</code> convierte cada polígono en su punto central — ideal para etiquetas o íconos. <code>ST_Area(::geography)</code> calcula la superficie real en m² (por eso dividimos entre 1 000 000 para tener km²). El cálculo ocurre en el servidor, no en el cliente.</div></div>
+    </div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Permisos</div><div class="slide-title">Un paso que muchos olvidan: GRANT sobre las vistas nuevas</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="code-label">Dar lectura a geoserver_user sobre cada vista nueva</div>
+    <div class="code-block"><span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"GRANT SELECT ON v_altiplano TO geoserver_user;"</span>
+
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"GRANT SELECT ON v_departamentos_centroides TO geoserver_user;"</span>
+
+<span class="c"># Opcional: que todo lo que se cree en el futuro</span>
+<span class="c"># ya nazca con permiso de lectura</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"ALTER DEFAULT PRIVILEGES IN SCHEMA public
+   GRANT SELECT ON TABLES TO geoserver_user;"</span></div></div>
+    <div>
+    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🚨</span><div class="callout-body"><div class="callout-title">¿Por qué hace falta de nuevo?</div>El <code>GRANT SELECT ON ALL TABLES</code> de la Clase 3 solo cubrió lo que <strong>existía en ese momento</strong>. Las vistas creadas hoy son objetos nuevos — sin este GRANT, GeoServer las lista pero falla al leerlas.</div></div>
+    <div class="callout callout-info"><span class="callout-icon">🔍</span><div class="callout-body"><div class="callout-title">Síntoma típico</div>La capa aparece en el Store pero el Layer Preview lanza <code>permission denied for view v_altiplano</code>. Ahora ya sabes exactamente qué falta.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">En la interfaz de GeoServer</div><div class="slide-title">Publicar la vista — el mismo flujo que una tabla</div><div class="slide-body"><div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Datos → Capas → Agregar nuevo recurso</div><div class="step-desc">Elegir el Store PostGIS de la Clase 3 — en la lista ahora aparecen <code>v_altiplano</code> y <code>v_departamentos_centroides</code> junto a las tablas.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Publicar y declarar el SRS</div><div class="step-desc">SRS declarado: <code>EPSG:4326</code>. En vistas con geometría calculada GeoServer a veces no lo detecta solo — decláralo tú.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Calcular los Bounding Boxes</div><div class="step-desc">"Compute from data" y "Compute from native bounds" — dos clics.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Verificar en Layer Preview</div><div class="step-desc"><code>v_altiplano</code> muestra 3 departamentos · <code>v_departamentos_centroides</code> muestra 9 puntos.</div></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-text"><div class="step-title">Aplicar los estilos de la Clase 5</div><div class="step-desc">La capa de centroides es de puntos: puedes usar el estilo con <code>ExternalGraphic</code> o etiquetas con <code>first_nom_</code>.</div></div></div>
+    </div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Un nivel más</div><div class="slide-title">Vistas materializadas — cuando la consulta es pesada</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="code-label">La vista se calcula una vez y se guarda en disco</div>
+    <div class="code-block"><span class="c"># Crear vista materializada</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"CREATE MATERIALIZED VIEW mv_centroides AS
+   SELECT * FROM v_departamentos_centroides;"</span>
+
+<span class="c"># Cuando los datos de origen cambien, refrescarla:</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"REFRESH MATERIALIZED VIEW mv_centroides;"</span>
+
+<span class="c"># Y darle permiso igual que a las demás</span>
+<span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
+  <span class="s">"GRANT SELECT ON mv_centroides TO geoserver_user;"</span></div></div>
+    <div>
+    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">⚖️</span><div class="callout-body"><div class="callout-title">Vista normal vs materializada</div><strong>Normal:</strong> siempre actualizada, se recalcula en cada consulta. <strong>Materializada:</strong> resultado guardado en disco, rapidísima de leer, pero hay que refrescarla con <code>REFRESH</code> cuando cambian los datos.</div></div>
+    <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body">Con 9 departamentos la diferencia es invisible. Con millones de filas y JOINs pesados, la materializada marca la diferencia. Es el mismo principio que veremos ahora con GeoWebCache: <strong>calcular una vez, servir muchas veces</strong>.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-section"><div class="section-num">Parte 2</div><div class="section-title">GeoWebCache:<br>teselas en caché</div><div class="section-desc">Calcular una vez, servir muchas veces — ahora con imágenes</div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Concepto clave</div><div class="slide-title">¿Por qué WMS puro se queda corto en producción?</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="cards" style="gap:10px;">
+    <div class="card"><span class="card-icon">🐢</span><div class="card-title">WMS dinámico</div><div class="card-desc">Cada petición dibuja el mapa desde cero: leer PostGIS, aplicar el SLD, renderizar el PNG. <strong>200–2000 ms</strong> por imagen, y consume CPU y RAM de la VM.</div></div>
+    <div class="card card-gold"><span class="card-icon">⚡</span><div class="card-title">WMTS con GeoWebCache</div><div class="card-desc">El mapa se corta en teselas de 256×256 px que se generan <strong>una sola vez</strong> y se guardan en disco. Servir una tesela toma <strong>5–20 ms</strong>.</div></div>
+    </div></div>
+    <div>
+    <div class="callout callout-ok" style="margin-bottom:10px;"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">Ya viene dentro de GeoServer</div>GeoWebCache está integrado — no hay que instalar nada nuevo en la VM. Perfecto para nuestros 2 GB de RAM: servir teselas ya generadas es mucho más liviano que renderizar.</div></div>
+    <div class="callout callout-info"><span class="callout-icon">🧩</span><div class="callout-body"><div class="callout-title">La misma idea que la vista materializada</div>La materializada guarda el <em>resultado de la consulta</em>; GeoWebCache guarda el <em>resultado del renderizado</em>. Ambas cambian cómputo repetido por lectura de disco.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Configuración</div><div class="slide-title">Activar la caché para una capa</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Abrir la pestaña "Tile Caching" de la capa</div><div class="step-desc">Datos → Capas → <code>departamentos</code> → pestaña Tile Caching.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Marcar "Create a cached layer for this layer"</div><div class="step-desc">Con eso la capa queda disponible vía WMTS y WMS-C.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Elegir gridset y formato</div><div class="step-desc">Gridset <code>EPSG:4326</code> (el CRS del curso) y formato <code>image/png</code>.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Guardar</div><div class="step-desc">La capa aparece en Tile Caching → Tile Layers, lista para el Seed.</div></div></div>
+    </div></div>
+    <div>
+    <div class="kv-list" style="margin-bottom:10px;">
+    <div class="kv"><span class="kv-key">Gridset</span><span class="kv-val">La rejilla de teselas: define niveles de zoom y CRS</span></div>
+    <div class="kv"><span class="kv-key">EPSG:4326</span><span class="kv-val">Coordenadas geográficas — el CRS que usamos en el curso</span></div>
+    <div class="kv"><span class="kv-key">EPSG:900913</span><span class="kv-val">Web Mercator — el de Google/OSM, útil para visores web</span></div>
+    <div class="kv"><span class="kv-key">image/png</span><span class="kv-val">Formato de tesela: soporta transparencia para superponer capas</span></div>
+    </div>
+    <div class="callout callout-info"><span class="callout-icon">💡</span><div class="callout-body">El estado de la caché por capa se ve en <strong>Tile Caching → Tile Layers</strong>: ahí están los enlaces de vista previa y las acciones Seed/Truncate.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Seed</div><div class="slide-title">Pre-generar las teselas de Bolivia</div><div class="slide-body">
+    <div class="two-col">
+    <div><div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><div class="step-title">Tile Caching → Tile Layers → Seed/Truncate</div><div class="step-desc">En la fila de <code>bolivia_curso:departamentos</code>.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><div class="step-title">Configurar la tarea de Seed</div><div class="step-desc">Operación: <strong>Seed</strong> · Gridset: EPSG:4326 · Formato: image/png · Zoom start: <strong>0</strong> · Zoom stop: <strong>8</strong> · 1 tarea.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><div class="step-title">Limitar el Bounding Box a Bolivia</div><div class="step-desc"><code>-69.65, -22.90, -57.45, -9.67</code> — no tiene sentido generar teselas del océano Pacífico.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><div class="step-title">Submit y observar el progreso</div><div class="step-desc">La misma página muestra las tareas en ejecución y cuántas teselas faltan.</div></div></div>
+    </div></div>
+    <div>
+    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">💾</span><div class="callout-body"><div class="callout-title">Cuidado con el zoom en nuestra VM</div>Cada nivel de zoom multiplica ×4 el número de teselas. Zoom 0–8 sobre Bolivia son unos cientos de teselas (pocos MB). Zoom 0–15 serían <strong>millones</strong> — y nuestra VM solo tiene 6 GB de disco. Empieza con 0–8.</div></div>
+    <div class="callout callout-info"><span class="callout-icon">🕐</span><div class="callout-body"><div class="callout-title">¿Y los niveles sin Seed?</div>No se pierden: la primera vez que alguien los pide, GeoWebCache los genera y los guarda. El Seed solo <em>adelanta</em> el trabajo de los niveles más usados.</div></div>
+    </div></div></div></div>
+
+    <div class="slide slide-content"><div class="slide-label">Consumir y mantener</div><div class="slide-title">Usar la caché — y truncarla cuando algo cambia</div><div class="slide-body">
+    <div class="code-label">WMTS — el servicio de teselas (para visores como OpenLayers o QGIS)</div>
+    <div class="code-block">http://192.168.X.X:8080/geoserver/gwc/service/wmts?REQUEST=<span class="n">GetCapabilities</span></div>
+    <div class="code-label" style="margin-top:12px;">WMS con caché integrada — solo agregar TILED=true</div>
+    <div class="code-block">http://192.168.X.X:8080/geoserver/bolivia_curso/wms?
+  SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap
+  &LAYERS=<span class="n">bolivia_curso:departamentos</span>
+  &SRS=EPSG:4326&BBOX=-69.65,-22.90,-57.45,-9.67
+  &WIDTH=256&HEIGHT=256&FORMAT=<span class="s">image/png</span>
+  &<span class="k">TILED=true</span></div>
+    <div class="callout callout-warn" style="margin-top:12px;"><span class="callout-icon">✂️</span><div class="callout-body"><div class="callout-title">Truncate: la caché no se actualiza sola</div>Si cambias los datos (un <code>REFRESH</code> de la materializada, un ogr2ogr <code>-overwrite</code>) o el estilo SLD de la capa, las teselas guardadas quedan <strong>viejas</strong>. Tile Layers → Seed/Truncate → operación <strong>Truncate</strong> borra las teselas de la zona afectada para que se regeneren con el dato nuevo.</div></div>
     </div></div>
 
     <div class="slide slide-content"><div class="slide-label">Resumen</div><div class="slide-title">Lo que aprendiste hoy</div><div class="slide-body">
     <div class="two-col">
     <ul class="slide-list">
-    <li>PostGIS supera a los archivos en escala, usuarios simultáneos y capacidad de consulta</li>
-    <li><code>CREATE EXTENSION postgis</code> activa las capacidades espaciales en PostgreSQL</li>
-    <li>El usuario de solo lectura para GeoServer es una buena práctica de seguridad</li>
-    <li>ogr2ogr importa GeoPackages y Shapefiles directamente a PostGIS con <code>-f PostgreSQL</code></li>
-    <li>El índice GIST hace que las consultas espaciales sean eficientes</li>
-    <li>GeoServer publica vistas SQL exactamente igual que tablas físicas</li>
+    <li>Una vista SQL es una consulta guardada: crea capas nuevas <strong>sin duplicar datos</strong></li>
+    <li>GeoServer publica vistas exactamente igual que tablas — mismo Store, mismo flujo</li>
+    <li>Las vistas nuevas necesitan su propio <code>GRANT SELECT</code> para <code>geoserver_user</code></li>
+    <li><code>ST_Centroid</code> y <code>ST_Area</code> generan geometrías y valores calculados en el servidor</li>
+    <li>Las vistas materializadas guardan el resultado en disco y se actualizan con <code>REFRESH</code></li>
+    <li>GeoWebCache sirve teselas pre-generadas: 5–20 ms vs 200–2000 ms del WMS dinámico</li>
+    <li>Seed pre-genera (zoom 0–8, BBox de Bolivia) y Truncate limpia cuando los datos o el estilo cambian</li>
     </ul>
-    <div><div class="callout callout-info"><span class="callout-icon">🔒</span><div class="callout-body"><div class="callout-title">Próxima clase</div>Servicios OGC en detalle, filtros CQL y seguridad. Aprenderemos a restringir el acceso por workspace, capa y usuario.</div></div></div>
+    <div><div class="callout callout-info"><span class="callout-icon">🌐</span><div class="callout-body"><div class="callout-title">Próxima clase</div>Servicios OGC a fondo: anatomía de las peticiones WMS, WFS y WMTS, y filtros CQL de atributos y espaciales directamente en la URL.</div></div></div>
     </div></div></div>
 
     <div class="slide slide-cover"><div class="cover-grid"></div>
     <div class="cover-tag"><span class="cover-dot"></span> Fin de la Clase 6</div>
-    <h1 class="cover-title">PostGIS y GeoServer<br><em>trabajan juntos.</em></h1>
-    <p class="cover-sub">Próxima clase: WMS, WFS, WMTS, filtros CQL y seguridad.</p>
+    <h1 class="cover-title">Capas calculadas.<br><em>Teselas al instante.</em></h1>
+    <p class="cover-sub">Próxima clase: WMS, WFS, WMTS y filtros CQL en detalle.</p>
     <div style="max-width:460px;width:100%;position:relative;">
-    <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario — Clase 6: PostGIS</div><div class="quiz-cta-sub">12 preguntas · 2 intentos</div></div><a href="test/topology.html" target="_blank">Ir al cuestionario →</a></div></div>
-    <div class="cover-pills" style="margin-top:20px;"><span class="cover-pill">🗓 Próxima: OGC + Seguridad</span></div>
+    <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario — Clase 6: Vistas SQL y GeoWebCache</div><div class="quiz-cta-sub">12 preguntas · 2 intentos</div></div><a href="test/topology.html" target="_blank">Ir al cuestionario →</a></div></div>
+    <div class="cover-pills" style="margin-top:20px;"><span class="cover-pill">🗓 Próxima: Servicios OGC + CQL</span></div>
     </div>
 
 </div>
 <div class="navbar"><button class="nav-btn" id="btnPrev">← Anterior</button>
-<div class="nav-dots"><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button></div>
+<div class="nav-dots"><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button><button class="nav-dot"></button></div>
 <button class="nav-btn" id="btnNext">Siguiente →</button></div>
 </div><script src="assets/slides.js"></script></body></html>
