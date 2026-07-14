@@ -26,7 +26,7 @@
 | `datum.html` | 2 | Instalación en Debian 13 con VirtualBox | 16 |
 | `vector.html` | 3 | PostGIS y Conversión de Datos con ogr2ogr | 13 |
 | `raster.html` | 4 | Publicación de capas vectoriales | 11 |
-| `symbology.html` | 5 | Estilos SLD: condicionales e imágenes | 16 |
+| `symbology.html` | 5 | Estilos SLD: condicionales, imágenes y degradados | 19 |
 | `topology.html` | 6 | PostGIS + GeoServer — datos desde la base | 14 |
 | `ogcapi.html` | 7 | Servicios OGC, seguridad y filtros CQL | 13 |
 | `geodesia.html` | 8 | Proyecto final — IDE Municipal | 11 |
