@@ -69,7 +69,8 @@
     </div></div></div></div>
 
     <div class="slide slide-content"><div class="slide-label">Vista 2 · Cálculo espacial</div><div class="slide-title">v_departamentos_centroides — de polígonos a puntos con superficie</div><div class="slide-body">
-    <div class="code-label">Funciones PostGIS dentro de la vista</div>
+    <div class="two-col">
+    <div><div class="code-label">Funciones PostGIS dentro de la vista</div>
     <div class="code-block"><span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
   <span class="s">"CREATE VIEW v_departamentos_centroides AS
    SELECT
@@ -82,9 +83,12 @@
 <span class="c"># Verificar: Santa Cruz debe salir primero (el departamento más grande)</span>
 <span class="k">sudo</span> -u postgres psql -d geoserver_curso -c \
   <span class="s">"SELECT first_nom_, superficie_km2 FROM v_departamentos_centroides
-   ORDER BY superficie_km2 DESC;"</span></div>
-    <div class="callout callout-info" style="margin-top:12px;"><span class="callout-icon">🧮</span><div class="callout-body"><div class="callout-title">Dos funciones espaciales trabajando</div><code>ST_Centroid()</code> convierte cada polígono en su punto central — ideal para etiquetas o íconos. <code>ST_Area(::geography)</code> calcula la superficie real en m² (por eso dividimos entre 1 000 000 para tener km²). El cálculo ocurre en el servidor, no en el cliente.</div></div>
-    </div></div>
+   ORDER BY superficie_km2 DESC;"</span></div></div>
+    <div>
+    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">📍</span><div class="callout-body"><div class="callout-title">¿Qué es un centroide?</div>El punto central de un polígono — el promedio de todos sus vértices ponderado por área. <code>ST_Centroid()</code> lo calcula automáticamente. Úsalo para poner una etiqueta o un ícono representando a todo el departamento, sin dibujar el polígono completo.</div></div>
+    <div class="callout callout-warn" style="margin-bottom:10px;"><span class="callout-icon">🔤</span><div class="callout-body"><div class="callout-title">first_nom_ sí existe en PostGIS</div>No es exclusivo del Shapefile: al importar con <code>ogr2ogr</code> en la Clase 3, el campo <code>FIRST_NOM_</code> se copió tal cual a la tabla <code>departamentos</code> — PostgreSQL solo lo guarda en minúsculas (<code>first_nom_</code>) porque así trata cualquier nombre de columna sin comillas. La columna es real, solo cambió de mayúsculas a minúsculas.</div></div>
+    <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body"><div class="callout-title">¿Para qué sirve esta vista?</div>Convierte cada departamento (un polígono grande) en un solo punto con su superficie ya calculada. Ejemplo real: un mapa que a nivel país solo muestra un punto con el nombre de cada departamento — mucho más liviano y legible que dibujar 9 polígonos completos con sus etiquetas encima.</div></div>
+    </div></div></div></div>
 
     <div class="slide slide-content"><div class="slide-label">Permisos</div><div class="slide-title">Un paso que muchos olvidan: GRANT sobre las vistas nuevas</div><div class="slide-body">
     <div class="two-col">
