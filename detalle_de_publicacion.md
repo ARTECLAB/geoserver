@@ -204,17 +204,47 @@ Es la pestaña activa por defecto, y la más densa de las cinco.
 
 ### 3.2 Publicación — cómo se presenta tu capa al mundo
 
-**[EN PANTALLA: pestaña Publicación, con estilos y configuración WMS]**
+**[EN PANTALLA: pestaña Publicación, recorriéndola de arriba hacia abajo, bloque por bloque]**
 
-Si Datos define qué es la capa, Publicación define **cómo se comporta como servicio**.
+Si Datos define qué es la capa, Publicación define **cómo se comporta como servicio**. Es la pestaña más larga de las cinco, así que vamos en el mismo orden en que aparece en pantalla, sin saltarnos ningún bloque.
 
 **Enabled y Advertised.** Dos interruptores que suelen confundirse. Enabled apaga la capa por completo: deja de responder a cualquier petición. Advertised es más sutil: la capa **sigue funcionando** ante peticiones directas —GetMap, GetFeature— pero desaparece del listado público en el GetCapabilities y del vistazo previo. Es la puerta que sigue abierta, pero sin cartel en la fachada. Perfecta para capas auxiliares que solo se usan dentro de un grupo mayor y no necesitan exposición individual.
 
-**HTTP Settings.** El campo **Response Cache Headers**, activado, evita que GeoServer vuelva a procesar la misma petición dentro del tiempo definido en **Cache Time** —una hora, tres mil seiscientos segundos, por defecto.
+**Estilos WMS.** Aquí eliges el **estilo por defecto** —el que se aplica cuando el cliente no pide ninguno— y los **estilos adicionales** que quedan disponibles para que quien consume el mapa elija otra forma de verlo.
 
-**WMS Settings.** Aquí eliges el **estilo por defecto** y los **estilos adicionales** disponibles para que el usuario elija. El **Default rendering buffer** agrega un margen en píxeles alrededor del área solicitada al renderizar, útil cuando tienes símbolos grandes o etiquetas que se recortarían justo en el borde. La sección de **Attribution** —texto, enlace y logo— son los créditos del proveedor del dato, visibles en algunos visores. Y **Root Layer in Capabilities** controla si esta capa aparece envuelta en el elemento raíz del documento de capacidades o como raíz directa, relevante solo si es la única capa expuesta en ese servicio.
+**Opaco.** Una pista que le das a los clientes, no un cambio de render: declara que esta capa **cubre por completo** lo que tenga debajo —típico de un mapa base—. Un cliente que respete la pista puede ahorrarse dibujar lo que de todos modos quedaría tapado.
 
-**WFS Settings**, cuando el recurso es vectorial: el **límite de features por petición**, que evita que un GetFeature devuelva millones de registros de golpe, y el **máximo de decimales** en las salidas GML, además de la lista de sistemas de referencia alternativos que se anuncian en el capabilities.
+**Buffer de renderizado por defecto.** Un margen extra, en píxeles, alrededor del área solicitada al renderizar. Sirve para que símbolos grandes o etiquetas que caen justo en el borde de la imagen no aparezcan cortados por la mitad.
+
+**Método de interpolación predeterminado.** Cómo se suavizan los píxeles cuando la imagen se reescala o se reproyecta: *vecino más cercano*, rápido pero pixelado; *bilineal* y *bicúbica*, más suaves pero más costosas. La opción "Utilizar servicio predeterminado" hereda lo configurado globalmente en WMS. En capas vectoriales apenas se nota; donde de verdad pesa es en ráster.
+
+**WMS Layer Settings — Queryable y Default WMS Path.** **Queryable** decide si la capa responde a GetFeatureInfo —el clic de "¿qué hay aquí?"—: desmarcado, la capa se dibuja igual, pero se vuelve muda. **Default WMS Path** define en qué "carpeta" del árbol de capas del GetCapabilities aparece, por ejemplo `/mapas_base` — pura organización de cara al cliente, no cambia ninguna URL.
+
+**WMS Root Layer in Capabilities.** Solo importa cuando esta capa es la única de nivel superior del servicio: controla si aparece envuelta en un elemento raíz extra del documento de capacidades, o directamente como raíz. Tres opciones: heredar la **configuración global de WMS** —lo normal—, forzar **Sí**, o forzar **No**.
+
+**URLs autoritativas e Identificadores de la capa.** Van en pareja, y son metadatos de catálogo. La **URL autoritativa** declara qué autoridad respalda el dato —por ejemplo "GeoBolivia", con su dirección web— y el **identificador de la capa** es el código único que esa autoridad le asigna a este dato. Ambos viajan en el GetCapabilities para que un catálogo externo identifique tu capa sin ambigüedad. En un proyecto de curso quedan vacíos; en una IDE institucional, son la cédula de identidad de la capa.
+
+**Atribución de WMS.** Los créditos del dato: un **texto de atribución** —"Fuente: GeoBolivia 2024"—, un **vínculo** a la página del proveedor, y opcionalmente un **logo**: su URL, su *content type* como `image/png`, y sus dimensiones — que el botón **Auto detectar tamaño y tipo de imagen** llena por ti, así que nunca las escribas a mano. Un detalle curioso para no confundirse en cámara: la traducción del formulario etiqueta los dos campos de dimensión como "Altura", pero son el ancho y el alto. Algunos visores muestran esta atribución sobre el mapa: es la forma correcta de dar crédito sin tocar el dato.
+
+**Web Feature Service — Configuración de Features.** Cinco decisiones sobre cómo sale tu dato vectorial crudo:
+
+- **Límite de número de features por consulta.** El techo de registros que un GetFeature puede devolver de esta capa; cero significa "sin límite propio", manda el límite global del servicio. Tu seguro contra el cliente que pide un millón de filas de golpe.
+- **Máximo número de decimales.** Cuántos decimales llevan las coordenadas en la salida. Para ponerlo en perspectiva: seis decimales en grados ya son unos diez centímetros en el terreno — más precisión que eso solo engorda la respuesta.
+- **Right-pad decimals with zeros.** Rellena las coordenadas con ceros a la derecha hasta completar el número de decimales fijado, para clientes que exigen un ancho fijo de dígitos.
+- **Forced decimal notation.** Prohíbe la notación científica: nada de `1.2E7`, siempre números decimales planos. Existe porque hay clientes que se rompen al leer exponentes.
+- **Activate complex to simple features conversion.** Convierte features complejas al modelo simple, para clientes que solo entienden features simples. Solo aplica si trabajas con esquemas complejos — que no es nuestro caso en el curso.
+
+**Omitir NumberMatched.** WFS normalmente informa cuántos registros en total coinciden con la consulta —el atributo `numberMatched`— y calcular ese total cuesta un conteo completo en la base. Marcando esta casilla te ahorras ese conteo en tablas grandes, a cambio de que el cliente pierda el "total de resultados" que usa para paginar.
+
+**Códigos SRS extra.** Por defecto, WFS anuncia en su capabilities una lista enorme de sistemas de referencia. Con **Anular la lista SRS amplia de WFS** declaras únicamente los códigos que de verdad quieres ofrecer para esta capa — un capabilities más liviano y clientes menos confundidos.
+
+**Coordinates Encoding.** La casilla **Encode coordinates measures** incluye en la salida la coordenada M — la "medida" de las geometrías XYM, típica en redes viales o hidrográficas con kilometraje acumulado. Si tu dato solo tiene X e Y, aquí no hay nada que incluir.
+
+**Configuración del formato KML.** Tres campos que solo importan si sirves esta capa hacia Google Earth. El "regionado" —*regionating*— decide **qué features aparecen primero según el nivel de zoom**, para no volcar miles de geometrías de golpe: el **atributo** define la importancia de cada feature —por ejemplo, población—, el **método** define cómo se reparten —por geometría, por orden externo, aleatorio— y **features por tesela** cuántas entran en cada región de zoom.
+
+**Opciones de Capa — Selectively disable services.** El interruptor fino de los servicios: deshabilita servicios específicos **solo para esta capa**. El caso clásico: la capa se puede ver por WMS, pero nadie puede descargarse el dato crudo por WFS. Control quirúrgico por capa, sin tocar la configuración global ni la seguridad.
+
+**Configuración de HTTP — cacheado.** **Cabeceras de respuesta de caché** le indica al cliente —navegador o proxy— que puede reutilizar la respuesta sin volver a pedirla durante los segundos definidos en **Tiempo de caché**. Importante no confundirlo con el cacheo de teselas que viene después: aquí GeoServer no guarda nada en el servidor, solo envía cabeceras HTTP para que quien consume cachee de su lado.
 
 ### 3.3 Dimensiones — cuando el mapa también tiene tiempo
 
