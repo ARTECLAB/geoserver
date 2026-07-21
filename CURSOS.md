@@ -38,7 +38,7 @@ Dominio: `fluttergis.danielquisbert.com` · 10 clases × 2h = 20h · Nivel bási
 
 ## 🌐 GeoServer 3 — De cero a producción
 
-Dominio: `geoserver.danielquisbert.com` (según CNAME) · 9 clases × 2h = 18h · Nivel intermedio
+Dominio: `geoserver.danielquisbert.com` (según CNAME) · 8 clases × 2h = 16h · Nivel intermedio
 
 - [Página principal](https://geoserver.danielquisbert.com/)
 - [Preparación para el curso](https://geoserver.danielquisbert.com/fundamentos.html)
@@ -50,12 +50,11 @@ Dominio: `geoserver.danielquisbert.com` (según CNAME) · 9 clases × 2h = 18h �
 | 3 | [PostGIS y Conversión de Datos con ogr2ogr](https://geoserver.danielquisbert.com/vector.html) | 13 | [Quiz](https://geoserver.danielquisbert.com/test/vector.html) |
 | 4 | [Publicación de capas vectoriales](https://geoserver.danielquisbert.com/raster.html) | 11 | [Quiz](https://geoserver.danielquisbert.com/test/raster.html) |
 | 5 | [Estilos SLD: condicionales, imágenes y degradados](https://geoserver.danielquisbert.com/symbology.html) | 19 | [Quiz](https://geoserver.danielquisbert.com/test/symbology.html) |
-| 6 | [Vistas SQL y GeoWebCache](https://geoserver.danielquisbert.com/topology.html) | 17 | [Quiz](https://geoserver.danielquisbert.com/test/topology.html) |
+| 6 | [Vistas SQL y GeoWebCache](https://geoserver.danielquisbert.com/topology.html) | 18 | [Quiz](https://geoserver.danielquisbert.com/test/topology.html) |
 | 7 | [Servicios OGC y filtros CQL](https://geoserver.danielquisbert.com/ogcapi.html) | 14 | [Quiz](https://geoserver.danielquisbert.com/test/ogcapi.html) |
-| 8 | [Seguridad en GeoServer](https://geoserver.danielquisbert.com/azimuth.html) | 15 | [Quiz](https://geoserver.danielquisbert.com/test/azimuth.html) |
-| 9 | [Proyecto final — IDE Municipal](https://geoserver.danielquisbert.com/geodesia.html) | 11 | [Quiz](https://geoserver.danielquisbert.com/test/geodesia.html) |
+| 8 | [Seguridad en GeoServer 3 (última clase)](https://geoserver.danielquisbert.com/geodesia.html) | 18 | [Quiz](https://geoserver.danielquisbert.com/test/geodesia.html) |
 
-> El curso creció de 8 a 9 clases: la Clase 6 se reescribió (ya no repite la instalación de PostGIS de la Clase 3; ahora es Vistas SQL + GeoWebCache), la Clase 7 se enfocó solo en OGC + CQL, y Seguridad se independizó como Clase 8 nueva (`azimuth.html`), corriendo el Proyecto Final a Clase 9. Conteo de slides verificado contra el HTML real — coincide con `geoserver/CLAUDE.md`.
+> Reestructurado 2026-07-21: el curso volvió de 9 a 8 clases. La Clase 9 "Proyecto final — IDE Municipal" se eliminó como clase separada; `geodesia.html` (antes esa Clase 9) ahora es la Clase 8 — última clase — reescrita 100% como Seguridad, fusionando y mejorando el contenido que tenía `azimuth.html`. `azimuth.html` y `test/azimuth.html` quedaron deprecados en el repo (marcados en su `<title>`), sin enlaces activos. Conteo de slides verificado contra el HTML real — coincide con `geoserver/CLAUDE.md`.
 
 ---
 

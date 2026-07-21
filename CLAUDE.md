@@ -8,7 +8,7 @@
 
 **Nombre:** GeoServer 3 — De cero a producción  
 **Nivel:** Intermedio  
-**Duración:** 9 clases × 2 horas = 18 horas  
+**Duración:** 8 clases × 2 horas = 16 horas (reestructurado 2026-07-21 — ver nota abajo)  
 **Hosting:** `geoserver-pro.danielquisbert.com` (GitHub Pages)  
 **Paleta:** gold `#C89B3C` / `#E8B84B`
 
@@ -27,15 +27,25 @@
 | `vector.html` | 3 | PostGIS y Conversión de Datos con ogr2ogr | 13 |
 | `raster.html` | 4 | Publicación de capas vectoriales | 11 |
 | `symbology.html` | 5 | Estilos SLD: condicionales, imágenes y degradados | 19 |
-| `topology.html` | 6 | Vistas SQL y GeoWebCache — capas calculadas, mapas veloces | 17 |
+| `topology.html` | 6 | Vistas SQL y GeoWebCache — capas calculadas, mapas veloces | 18 |
 | `ogcapi.html` | 7 | Servicios OGC y filtros CQL | 14 |
-| `azimuth.html` | 8 | Seguridad en GeoServer — usuarios, roles y reglas | 15 |
-| `geodesia.html` | 9 | Proyecto final — IDE Municipal | 11 |
+| `geodesia.html` | 8 (última) | Seguridad en GeoServer 3 — usuarios, roles, reglas y checklist final de producción | 18 |
 
 ### Quizzes (subcarpeta test/)
 
 Mismo nombre de archivo que el slide correspondiente.  
 Cada quiz: 12 preguntas · 2 intentos · retroalimentación inmediata.
+
+### Archivos deprecados — NO usar, NO enlazar
+
+> **Reestructuración 2026-07-21:** el curso pasó de 9 a 8 clases. `geodesia.html` dejó de ser "Proyecto final — IDE Municipal" como clase completa (con visor OpenLayers y tabla de criterios de evaluación) y ahora es la Clase 8 (última clase), 100% Seguridad — se fusionó y mejoró el contenido que antes vivía en `azimuth.html`, con ejemplos más detallados y un checklist final de producción incorporado. El proyecto final **no desapareció**: se menciona explícitamente como cierre de esta clase (presentación breve del estudiante, sin rúbrica de puntos) — no como una clase de contenido nuevo ni con criterios de evaluación formales.
+
+| Archivo | Estado | Motivo |
+|---------|--------|--------|
+| `azimuth.html` | **Deprecado** | Era la Clase 8 (Seguridad). Su contenido se fusionó y mejoró dentro de `geodesia.html`. El archivo queda en el repo marcado `[DEPRECADO]` en el `<title>`, pero no debe enlazarse desde `index.html` ni desde ningún slide. |
+| `test/azimuth.html` | **Deprecado** | Quiz de la clase anterior. Su contenido se trasladó a `test/geodesia.html`. |
+
+**Sobre el proyecto final:** no tiene clase propia ni tabla de criterios/porcentajes de evaluación. Se trata como el cierre natural de la Clase 8: el estudiante presenta en vivo la IDE que construyó a lo largo del curso (capas, estilos, caché, seguridad), sin entregable formal calificado por rúbrica.
 
 ---
 
@@ -206,11 +216,10 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 - `vector.html` — PostGIS con apt, ogr2ogr completo, Store PostGIS en GeoServer
 - `raster.html` — Shapefile, Layer Groups, segunda capa (provincias) — sin GeoTIFF
 - `symbology.html` — solo SLD (sin CSS Styles: el plugin no está disponible para GeoServer 3), estilos condicionales con ElseFilter y filtros numéricos usando el mapa de departamentos (campos reales FIRST_NOM_/COUNT/COD), ExternalGraphic para íconos personalizados (caso postes), escala dependiente — sin ColorMap/raster (2026-07-09)
-- `topology.html` — Clase 6 reescrita (2026-07-14): vistas SQL sobre lo ya construido en la Clase 3 (sin repetir instalación de PostGIS ni ogr2ogr) + GeoWebCache (activar caché, Seed zoom 0–8 con BBox de Bolivia por los 6GB de disco, Truncate). Usa los nombres reales del curso: BD `geoserver_curso`, usuario `geoserver_user`, workspace `bolivia_curso`, campos `first_nom_`/`count` en minúsculas (ogr2ogr los convierte)
-- `ogcapi.html` — Clase 7 (2026-07-14): solo WMS/WFS/WMTS + CQL_FILTER (GeoWebCache pasó a la Clase 6, seguridad a la Clase 8). GetCapabilities, orden lat/lon del BBOX en WMS 1.3.0, práctica integradora
-- `azimuth.html` — Clase 8 NUEVA (2026-07-14): seguridad — contraseña admin, master password, usuarios/roles (ROLE_EDITOR, editor_gis), reglas de datos `workspace.capa.permiso = roles`, reglas de servicios, verificación en incógnito, OIDC en GS3
-- `geodesia.html` — Clase 9 (renumerada): proyecto final IDE Municipal
-- `test/*.html` — 9 quizzes, 108 preguntas, sin Docker, sin GeoPackage
+- `topology.html` — Clase 6 reescrita (2026-07-14, ampliada 2026-07-21): vistas SQL sobre lo ya construido en la Clase 3 (sin repetir instalación de PostGIS ni ogr2ogr) + GeoWebCache (activar caché con General settings completo, Parameter Filters/STYLES, Cached Grid Sets EPSG:4326/900913, Seed zoom 0–8 con BBox de Bolivia por los 6GB de disco, Truncate). Usa los nombres reales del curso: BD `geoserver_curso`, usuario `geoserver_user`, workspace `bolivia_curso`, campos `first_nom_`/`count` en minúsculas (ogr2ogr los convierte)
+- `ogcapi.html` — Clase 7 (2026-07-14, simplificada 2026-07-21): solo WMS/WFS/WMTS + CQL_FILTER (GeoWebCache pasó a la Clase 6, seguridad a la Clase 8). GetCapabilities, orden lat/lon del BBOX en WMS 1.3.0, práctica integradora, con kv-list de apoyo aclarando cada parámetro (WMS/WFS, TILEMATRIX/TILEROW/TILECOL, DWITHIN)
+- `geodesia.html` — Clase 8 (última clase, reescrita 2026-07-21): 100% Seguridad — contraseña admin, master password, usuarios/roles (ROLE_EDITOR, editor_gis), reglas de datos `workspace.capa.permiso = roles`, reglas de servicios, verificación en incógnito, OIDC en GS3, y checklist final de producción (CORS Jetty 12, GeoWebCache, GEOSERVER_LOG_LOCATION, backup del Data Directory). Reemplaza tanto a la antigua "Proyecto final — IDE Municipal" como a `azimuth.html` (ver "Archivos deprecados" arriba)
+- `test/*.html` — 8 quizzes activos (96 preguntas) + 1 quiz deprecado (`test/azimuth.html`), sin Docker, sin GeoPackage
 
 ### ✅ Correcciones aplicadas
 - Docker eliminado de todos los archivos → instalación directa en VM
@@ -221,7 +230,8 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 - ARTECLAB Bolivia → ARTECLAB en todos los archivos
 - RAM real corregida a 2GB (no 6GB) — GeoTIFF/raster eliminado de `raster.html` y `symbology.html` por riesgo de OOM en la VM (2026-07-09)
 - `ogr2ogr` sin `host=localhost`/`user=postgres` en la cadena `PG:` — causaba `fe_sendauth: no password supplied`
-- Reestructuración de clases 6–9 (2026-07-14): la Clase 6 repetía toda la Clase 3 (instalar PostGIS, usuario, ogr2ogr, Store) con nombres inconsistentes (`geobolivia`/`geoserver_ro`) y un GeoPackage — reescrita como Vistas SQL + GeoWebCache. La Clase 7 tenía 4 temas apretados — quedó solo OGC + CQL. Seguridad ahora es la Clase 8 nueva (`azimuth.html`). El quiz `test/ogcapi.html` era una copia idéntica del de PostGIS — reescrito con preguntas propias de OGC/CQL. Workspace unificado a `bolivia_curso` (antes aparecía `geoserver3_curso` en ogcapi/geodesia)
+- Reestructuración de clases 6–9 (2026-07-14): la Clase 6 repetía toda la Clase 3 (instalar PostGIS, usuario, ogr2ogr, Store) con nombres inconsistentes (`geobolivia`/`geoserver_ro`) y un GeoPackage — reescrita como Vistas SQL + GeoWebCache. La Clase 7 tenía 4 temas apretados — quedó solo OGC + CQL. Seguridad pasó a ser la Clase 8 nueva (`azimuth.html`, en ese momento). El quiz `test/ogcapi.html` era una copia idéntica del de PostGIS — reescrito con preguntas propias de OGC/CQL. Workspace unificado a `bolivia_curso` (antes aparecía `geoserver3_curso` en ogcapi/geodesia)
+- Reestructuración de 9 a 8 clases (2026-07-21): se eliminó la Clase 9 "Proyecto final — IDE Municipal" como clase separada, junto con su tabla de criterios/porcentajes de evaluación. `geodesia.html` pasó a ser la Clase 8 (última clase), reescrita 100% como Seguridad, fusionando y mejorando el contenido que tenía `azimuth.html` (ahora deprecado, ver "Archivos deprecados" arriba) más un checklist final de producción. El proyecto final se mantiene solo como mención de cierre de esa clase (presentación breve del estudiante, sin rúbrica). `test/geodesia.html` se reescribió con las 12 preguntas de seguridad (antes en `test/azimuth.html`, ahora deprecado). Se actualizaron todas las referencias cruzadas en `index.html`, `test/index.html` y `meridian.html` (mapa del curso) para reflejar 8 clases · 16 horas.
 
 ### ✅ Resuelto (2026-07-09)
 `slides.css` ya usa `justify-content: flex-start` en `.slide.active` y `font-size: clamp(10px, 1.1vw, 13px)` en `.code-block` (mismo fix que fluttergis, son dos copias separadas del archivo).
@@ -255,43 +265,6 @@ http://192.168.X.X:8080/geoserver/{workspace}/wms?
 <a href="test/ARCHIVO.html" target="_blank">Ir al cuestionario →</a>
 ```
 > El quiz está en `test/`, igual que en Flutter GIS — mismo nombre de archivo que el slide.
-
----
-
-## Proyecto final — IDE Municipal (Clase 9)
-
-El estudiante entrega una Infraestructura de Datos Espaciales con:
-- GeoServer 3 publicando capas de Bolivia desde PostGIS
-- Estilos SLD en todas las capas
-- Seguridad con roles de acceso configurada
-- Visor web OpenLayers consumiendo WMS y WFS
-- Filtros CQL funcionando desde el visor
-- Todo corriendo en la VM de Debian 13
-Listo
-Ahora los tres como artefactos, uno por uno. Cada uno tiene su botón de copia:
-
-
-Creó un archivo, archivo leído
-Creó un archivo, archivo leído
-Tres archivos .md para descargar directamente. Al descargarlos los renombras así:
-
-Archivo descargado	Renombrar a	Colocar en
-CLAUDE-raiz.md	CLAUDE.md	carpetanueva/
-CLAUDE-fluttergis.md	CLAUDE.md	carpetanueva/fluttergis/
-CLAUDE-geoserver.md	CLAUDE.md	carpetanueva/geoserver/
-
-Claude raiz
-Documento · MD 
-
-Claude fluttergis
-Documento · MD 
-
-Claude geoserver
-Documento · MD 
-
-
-
-
 
 
 

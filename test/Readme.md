@@ -34,8 +34,8 @@ test/
 ├── raster.html             ← Clase 4: Publicación de Capas Vectoriales
 ├── symbology.html          ← Clase 5: Estilos con SLD
 ├── topology.html           ← Clase 6: PostGIS + GeoServer
-├── ogcapi.html             ← Clase 7: Servicios OGC, Filtros CQL y Seguridad
-├── geodesia.html           ← Clase 8: Proyecto Final — IDE Municipal
+├── ogcapi.html             ← Clase 7: Servicios OGC y filtros CQL
+├── geodesia.html           ← Clase 8: Seguridad en GeoServer 3 (última clase)
 │
 └── assets/
     ├── quiz.css            ← Estilos compartidos (paleta ARTECLAB + dark mode)
@@ -139,8 +139,8 @@ Los nombres no revelan el orden del curso intencionalmente — evita que los est
 | `raster.html` | Publicación de capas | 12 | 100 |
 | `symbology.html` | Estilos SLD | 12 | 100 |
 | `topology.html` | PostGIS + GeoServer | 12 | 100 |
-| `ogcapi.html` | Servicios OGC + Seguridad | 12 | 100 |
-| `geodesia.html` | Proyecto Final IDE | 12 | 100 |
+| `ogcapi.html` | Servicios OGC + filtros CQL | 12 | 100 |
+| `geodesia.html` | Seguridad en GeoServer 3 | 12 | 100 |
 | **Total** | | **96** | **800** |
 
 ---

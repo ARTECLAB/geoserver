@@ -52,6 +52,8 @@ http://192.168.X.X:8080/geoserver/gwc/service/wmts?
     </div></div></div></div>
 
     <div class="slide slide-content"><div class="slide-label">Práctica</div><div class="slide-title">Peticiones OGC reales — cópialas y pruébalas</div><div class="slide-body">
+    <div class="two-col">
+    <div>
     <div class="code-label">WMS GetMap con filtro CQL</div>
     <div class="code-block">http://192.168.X.X:8080/geoserver/bolivia_curso/wms?
   SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap
@@ -66,8 +68,18 @@ http://192.168.X.X:8080/geoserver/gwc/service/wmts?
   &TYPENAMES=<span class="n">bolivia_curso:departamentos</span>
   &CQL_FILTER=<span class="k">first_nom_='Beni'</span>
   &OUTPUTFORMAT=<span class="s">application/json</span>&COUNT=50</div>
-    <div class="callout callout-warn" style="margin-top:12px;"><span class="callout-icon">🧭</span><div class="callout-body"><div class="callout-title">Ojo con el orden del BBOX</div>En WMS 1.3.0 con EPSG:4326 el orden es <code>lat,lon</code> (miny,minx,maxy,maxx). En WMS 1.1.1 era <code>lon,lat</code>. Si el mapa sale vacío o "de costado", revisa esto primero.</div></div>
-    </div></div>
+    </div>
+    <div>
+    <div class="code-label">Los mismos parámetros, en lenguaje simple</div>
+    <div class="kv-list" style="margin-bottom:10px;">
+    <div class="kv"><span class="kv-key">REQUEST</span><span class="kv-val">La acción: GetMap pide una imagen, GetFeature pide los datos</span></div>
+    <div class="kv"><span class="kv-key">LAYERS / TYPENAMES</span><span class="kv-val">Qué capa — mismo nombre <code>workspace:capa</code>, distinto parámetro según el servicio</span></div>
+    <div class="kv"><span class="kv-key">BBOX</span><span class="kv-val">El rectángulo del mapa a dibujar — solo aplica a WMS, no a WFS</span></div>
+    <div class="kv"><span class="kv-key">CQL_FILTER</span><span class="kv-val">El mismo filtro funciona igual en los dos servicios</span></div>
+    <div class="kv"><span class="kv-key">FORMAT / OUTPUTFORMAT</span><span class="kv-val">Cómo sale la respuesta — imagen en WMS, GeoJSON en WFS</span></div>
+    </div>
+    <div class="callout callout-warn"><span class="callout-icon">🧭</span><div class="callout-body"><div class="callout-title">Ojo con el orden del BBOX</div>En WMS 1.3.0 con EPSG:4326 el orden es <code>lat,lon</code> (miny,minx,maxy,maxx). En WMS 1.1.1 era <code>lon,lat</code>. Si el mapa sale vacío o "de costado", revisa esto primero.</div></div>
+    </div></div></div></div>
 
     <div class="slide slide-content"><div class="slide-label">Teselas</div><div class="slide-title">WMTS — consumir la caché que creamos en la Clase 6</div><div class="slide-body">
     <div class="two-col">
@@ -78,14 +90,19 @@ http://192.168.X.X:8080/geoserver/gwc/service/wmts?
   &SRS=EPSG:4326&BBOX=-69.65,-22.90,-57.45,-9.67
   &WIDTH=256&HEIGHT=256&FORMAT=<span class="s">image/png</span>
   &<span class="k">TILED=true</span></div>
-    <div class="code-label" style="margin-top:12px;">WMTS puro — lo que usará OpenLayers en el proyecto final</div>
+    <div class="code-label" style="margin-top:12px;">WMTS puro — lo que consumiría un visor web (OpenLayers, Leaflet) para el mapa base</div>
     <div class="code-block">http://192.168.X.X:8080/geoserver/gwc/service/wmts?
   SERVICE=WMTS&VERSION=1.0.0&REQUEST=<span class="n">GetTile</span>
   &LAYER=<span class="n">bolivia_curso:departamentos</span>
   &TILEMATRIXSET=EPSG:4326&TILEMATRIX=EPSG:4326:5
   &TILEROW=<span class="n">17</span>&TILECOL=<span class="n">15</span>&FORMAT=<span class="s">image/png</span></div></div>
     <div>
-    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">🧩</span><div class="callout-body"><div class="callout-title">TILEROW y TILECOL</div>WMTS no pide un BBox: pide una celda exacta de la rejilla (gridset). El visor calcula fila y columna según el zoom y la posición — por eso a mano se siente raro, pero para el cliente es trivial.</div></div>
+    <div class="kv-list" style="margin-bottom:10px;">
+    <div class="kv"><span class="kv-key">TILEMATRIXSET</span><span class="kv-val">El gridset — la rejilla completa, la misma que configuramos en la Clase 6</span></div>
+    <div class="kv"><span class="kv-key">TILEMATRIX</span><span class="kv-val">Un nivel de zoom dentro de ese gridset, ej. <code>EPSG:4326:5</code> = zoom 5</span></div>
+    <div class="kv"><span class="kv-key">TILEROW / TILECOL</span><span class="kv-val">Fila y columna de una tesela dentro de ese nivel de zoom</span></div>
+    </div>
+    <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">🧩</span><div class="callout-body"><div class="callout-title">WMTS no pide un BBox, pide una celda</div>En vez de "dame el mapa de esta zona", WMTS pregunta "dame la tesela exacta fila 17, columna 15, del zoom 5". El visor calcula esa fila y columna solo — por eso a mano se siente raro, pero para el cliente es trivial.</div></div>
     <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body">Compara los tiempos en las herramientas de red del navegador (F12): la tesela cacheada responde en milisegundos; el GetMap dinámico tarda 10–100 veces más.</div></div>
     </div></div></div></div>
 
@@ -119,15 +136,22 @@ first_nom_ = <span class="s">'La Paz'</span> AND "count" > <span class="n">15</s
     <div class="code-block"><span class="c"># Radio de 100 km desde el centro de La Paz</span>
 DWITHIN(wkb_geometry, POINT(<span class="n">-68.15 -16.50</span>), <span class="n">100000</span>, meters)
 
-<span class="c"># Intersección con un polígono dibujado</span>
+<span class="c"># Intersección con un rectángulo dibujado a mano</span>
 INTERSECTS(wkb_geometry,
-  POLYGON((-70 -14,-66 -14,-66 -18,-70 -18,-70 -14)))
+  POLYGON((-70 -16,-66 -16,-66 -18,-70 -18,-70 -16)))
 
 <span class="c"># Combinado: atributo + espacio</span>
 "count" > <span class="n">10</span> AND
   DWITHIN(wkb_geometry, POINT(<span class="n">-68.15 -16.50</span>), <span class="n">200000</span>, meters)</div>
     </div>
     <div>
+    <div class="code-label">DWITHIN, parámetro por parámetro</div>
+    <div class="kv-list" style="margin-bottom:10px;">
+    <div class="kv"><span class="kv-key">wkb_geometry</span><span class="kv-val">La columna de geometría de la capa — contra qué comparar</span></div>
+    <div class="kv"><span class="kv-key">POINT(-68.15 -16.50)</span><span class="kv-val">El centro del radio — en formato lon lat, separados por espacio</span></div>
+    <div class="kv"><span class="kv-key">100000</span><span class="kv-val">La distancia — un número simple, sin unidad todavía</span></div>
+    <div class="kv"><span class="kv-key">meters</span><span class="kv-val">La unidad de esa distancia — 100000 meters = 100 km</span></div>
+    </div>
     <div class="callout callout-info" style="margin-bottom:10px;"><span class="callout-icon">📍</span><div class="callout-body"><div class="callout-title">El nombre de la geometría también importa</div>En las tablas importadas con ogr2ogr la columna se llama <code>wkb_geometry</code>; en la vista de centroides la renombramos a <code>geom</code>. Igual que con los atributos: usa el nombre real de la capa.</div></div>
     <div class="callout callout-ok"><span class="callout-icon">✓</span><div class="callout-body">CQL se ejecuta en el servidor. El cliente solo recibe los features que cumplen la condición — menos datos por la red, respuesta más rápida.</div></div>
     </div></div></div></div>
@@ -153,16 +177,16 @@ INTERSECTS(wkb_geometry,
     <li>DWITHIN(geom, POINT(x y), distancia, meters) selecciona features en un radio</li>
     <li>En GS3, CORS no va en web.xml — cambio importante al migrar desde GS2</li>
     </ul>
-    <div><div class="callout callout-info"><span class="callout-icon">🔒</span><div class="callout-body"><div class="callout-title">Próxima clase</div>Seguridad en GeoServer: contraseña de admin, usuarios, roles y reglas de acceso por capa y por servicio. Tu servidor, protegido antes del proyecto final.</div></div></div>
+    <div><div class="callout callout-info"><span class="callout-icon">🔒</span><div class="callout-body"><div class="callout-title">Próxima y última clase</div>Seguridad en GeoServer 3: contraseña de admin, usuarios, roles, reglas de acceso por capa y por servicio, y el checklist final antes de publicar tu servidor.</div></div></div>
     </div></div></div>
 
     <div class="slide slide-cover"><div class="cover-grid"></div>
     <div class="cover-tag"><span class="cover-dot"></span> Fin de la Clase 7</div>
     <h1 class="cover-title">Servicios dominados.<br><em>Consultas en la URL.</em></h1>
-    <p class="cover-sub">Próxima clase: seguridad — usuarios, roles y reglas de acceso.</p>
+    <p class="cover-sub">Última clase: seguridad — usuarios, roles, reglas de acceso y checklist final.</p>
     <div style="max-width:460px;width:100%;position:relative;">
     <div class="quiz-cta"><div class="quiz-cta-text"><div class="quiz-cta-title">Cuestionario — Clase 7: OGC + CQL</div><div class="quiz-cta-sub">12 preguntas · 2 intentos</div></div><a href="test/ogcapi.html" target="_blank">Ir al cuestionario →</a></div></div>
-    <div class="cover-pills" style="margin-top:20px;"><span class="cover-pill">🗓 Próxima: Seguridad en GeoServer</span></div>
+    <div class="cover-pills" style="margin-top:20px;"><span class="cover-pill">🗓 Última clase: Seguridad en GeoServer 3</span></div>
     </div>
 
 </div>
